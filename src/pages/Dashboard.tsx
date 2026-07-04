@@ -9,6 +9,8 @@ import ChatModelsSection from '@/components/dashboard/sections/ChatModelsSection
 import BillingSection from '@/components/dashboard/sections/BillingSection';
 import SecuritySection from '@/components/dashboard/sections/SecuritySection';
 import PolicySection from '@/components/dashboard/sections/PolicySection';
+import MCPServersSection from '@/components/dashboard/sections/MCPServersSection';
+import AgentsSection from '@/components/dashboard/sections/AgentsSection';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { fetchLicenseInfo, LicenseInfo } from '@/services/adminApi';
@@ -51,6 +53,14 @@ const sectionMeta: Record<
   policy: {
     title: 'Detection Policy',
     description: 'Tune severity, actions, redaction strategy, and allowlists per category.',
+  },
+  'mcp-servers': {
+    title: 'MCP Servers',
+    description: 'Connect governed tool servers — GitHub, Jira, Notion, Slack, and more. Coming next.',
+  },
+  agents: {
+    title: 'Agents',
+    description: 'Build custom agents or run third-party ones — all governed by Kotwal. Coming soon.',
   },
 };
 
@@ -119,6 +129,10 @@ const Dashboard = () => {
         return <SecuritySection />;
       case 'policy':
         return <PolicySection />;
+      case 'mcp-servers':
+        return <MCPServersSection />;
+      case 'agents':
+        return <AgentsSection />;
       default:
         return <OverviewSection />;
     }

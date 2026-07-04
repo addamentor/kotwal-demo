@@ -1,5 +1,8 @@
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, UserPlus, Pencil, Bot, CreditCard, ShieldCheck, FileText } from 'lucide-react';
+import {
+  LayoutDashboard, Users, UserPlus, Pencil, Bot, CreditCard,
+  ShieldCheck, FileText, Plug, Sparkles,
+} from 'lucide-react';
 
 export type DashboardSection =
   | 'overview'
@@ -9,7 +12,9 @@ export type DashboardSection =
   | 'chat-models'
   | 'billing'
   | 'security'
-  | 'policy';
+  | 'policy'
+  | 'mcp-servers'
+  | 'agents';
 
 interface DashboardSidebarProps {
   activeSection: DashboardSection;
@@ -21,7 +26,21 @@ interface NavItem {
   label: string;
   icon: typeof Users;
   isSub?: boolean;
+  /** Small pill shown at the end of the label (e.g. "SOON", "NEW"). */
+  badge?: 'soon' | 'next' | 'new';
 }
+
+const BADGE_STYLES: Record<NonNullable<NavItem['badge']>, string> = {
+  soon: 'bg-blue-100 text-blue-700 border-blue-200',
+  next: 'bg-amber-100 text-amber-800 border-amber-200',
+  new:  'bg-emerald-100 text-emerald-800 border-emerald-200',
+};
+
+const BADGE_LABEL: Record<NonNullable<NavItem['badge']>, string> = {
+  soon: 'Soon',
+  next: 'Next',
+  new:  'New',
+};
 
 const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) => {
   const mainNav: NavItem[] = [
@@ -33,6 +52,11 @@ const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) =>
     { id: 'billing', label: 'Manage Billing', icon: CreditCard },
     { id: 'security', label: 'View Security Alerts', icon: ShieldCheck },
     { id: 'policy', label: 'Detection Policy', icon: FileText },
+    // ── Roadmap preview items ────────────────────────────────────────
+    // Rendered with a "Next" / "Soon" chip so users understand they aren't
+    // live yet, but the section itself is interactive (waitlist, previews).
+    { id: 'mcp-servers', label: 'MCP Servers',  icon: Plug,      badge: 'next' },
+    { id: 'agents',      label: 'Agents',       icon: Sparkles,  badge: 'soon' },
   ];
 
   return (
@@ -62,11 +86,39 @@ const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) =>
               )}
             >
               <Icon className={cn('w-4 h-4', item.isSub && 'opacity-80')} />
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold tracking-wider uppercase',
+                    BADGE_STYLES[item.badge]
+                  )}
+                >
+                  {BADGE_LABEL[item.badge]}
+                </span>
+              )}
             </button>
           );
         })}
       </nav>
+
+      {/* Roadmap footer — legend for the "Soon" / "Next" chips */}
+      <div className="border-t border-sidebar-border px-4 py-3">
+        <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold mb-1.5">
+          Legend
+        </p>
+        <div className="flex flex-wrap gap-1.5 text-[10px]">
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live
+          </span>
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" /> Next
+          </span>
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" /> Soon
+          </span>
+        </div>
+      </div>
     </aside>
   );
 };

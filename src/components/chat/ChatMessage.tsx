@@ -1,13 +1,15 @@
 import { Message } from '@/types/chat';
 import MarkdownRenderer from './MarkdownRenderer';
-import { User } from 'lucide-react';
+import MessageActions from './MessageActions';
 
 interface ChatMessageProps {
   message: Message;
   isTyping?: boolean;
+  /** Optional label for the model that produced the response — shown in exports. */
+  modelLabel?: string | null;
 }
 
-const ChatMessage = ({ message, isTyping }: ChatMessageProps) => {
+const ChatMessage = ({ message, isTyping, modelLabel }: ChatMessageProps) => {
   const isUser = message.role === 'user';
 
   if (isUser) {
@@ -21,7 +23,7 @@ const ChatMessage = ({ message, isTyping }: ChatMessageProps) => {
   }
 
   return (
-    <div className="flex w-full gap-3 sm:gap-4 pr-4 sm:pr-10 fade-in">
+    <div className="group flex w-full gap-3 sm:gap-4 pr-4 sm:pr-10 fade-in">
       {/* Avatar */}
       <div className="flex-shrink-0 w-8 h-8 mt-0.5">
         <div className="w-8 h-8 rounded-full bg-background border border-border/50 flex items-center justify-center p-1.5 shadow-sm">
@@ -46,6 +48,15 @@ const ChatMessage = ({ message, isTyping }: ChatMessageProps) => {
             <MarkdownRenderer content={message.content} />
           </div>
         </div>
+        {/* Actions: copy + save-as-pdf. Hover-reveal on desktop, always on touch. */}
+        {!isTyping && message.content && (
+          <MessageActions
+            content={message.content}
+            timestamp={message.timestamp}
+            modelLabel={modelLabel}
+            className="px-1"
+          />
+        )}
       </div>
     </div>
   );

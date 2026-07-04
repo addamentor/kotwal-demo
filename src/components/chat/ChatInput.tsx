@@ -1,6 +1,8 @@
-import { useRef, useEffect, KeyboardEvent } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { useRef, useEffect, KeyboardEvent, useState } from 'react';
+import { ArrowUp, Sparkles } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ProjectSwitcher from './ProjectSwitcher';
+import PromptLibrarySheet from './PromptLibrarySheet';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -24,6 +26,7 @@ const ChatInput = ({
   inputRef,
 }: ChatInputProps) => {
   const textareaRef = inputRef ?? useRef<HTMLTextAreaElement>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -45,6 +48,11 @@ const ChatInput = ({
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handlePromptSelect = (prompt: string) => {
+    onInputChange(prompt);
+    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   return (
@@ -74,7 +82,8 @@ const ChatInput = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-start pt-1">
+          <div className="flex flex-wrap items-center justify-start gap-3 pt-1">
+            {/* Model selector */}
             <div className="flex items-center gap-2">
               <p className="text-[10px] uppercase tracking-wide text-slate-500">Model</p>
               <Select value={selectedModel} onValueChange={onChangeModel} disabled={disabled}>
@@ -90,12 +99,35 @@ const ChatInput = ({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Project chip */}
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">Project</p>
+              <ProjectSwitcher />
+            </div>
+
+            {/* Prompt Library button */}
+            <button
+              type="button"
+              onClick={() => setLibraryOpen(true)}
+              disabled={disabled}
+              className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-lg border border-chat-input-border bg-chat-input px-2.5 text-xs shadow-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              Prompt library
+            </button>
           </div>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2">
           Kotwal can make mistakes. Check important info.
         </p>
       </div>
+
+      <PromptLibrarySheet
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onSelect={handlePromptSelect}
+      />
     </div>
   );
 };
