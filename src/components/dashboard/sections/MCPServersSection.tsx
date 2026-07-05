@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useDemoSession } from '@/context/DemoSessionContext';
-import { forceLeadGate } from '@/components/lead/DemoLeadGateMount';
+import { triggerLeadGate } from '@/components/lead/DemoLeadGateMount';
 import {
   MOCK_MCP_PREVIEW_SERVERS, MCPPreviewServer,
   WAITLIST_STORAGE_KEY, WaitlistEntry,
@@ -77,10 +77,10 @@ const MCPServersSection = () => {
 
   const openReserve = (server: MCPPreviewServer) => {
     log('reserve', { feature: 'mcp', itemId: server.id, itemName: server.name });
-    // If the visitor hasn't yet identified themselves, escalate to the hard
-    // lead gate — Reserve is the strongest signal of intent we get in the demo.
+    // High-intent moment: fire the reserve trigger. The popup is closeable —
+    // the visitor can still proceed to the waitlist reservation modal after.
     if (!hasSubmitted) {
-      forceLeadGate('hard');
+      triggerLeadGate('reserve');
       return;
     }
     setSelectedServer(server);

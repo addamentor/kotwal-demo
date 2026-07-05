@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useDemoSession } from '@/context/DemoSessionContext';
-import { forceLeadGate } from '@/components/lead/DemoLeadGateMount';
+import { triggerLeadGate } from '@/components/lead/DemoLeadGateMount';
 import {
   MOCK_AGENT_TEMPLATES, AgentTemplate, MOCK_AGENT_SAMPLE_RUNS,
   WAITLIST_STORAGE_KEY, WaitlistEntry,
@@ -72,7 +72,7 @@ const AgentsSection = () => {
   const openReserveForAgent = (agent: AgentTemplate) => {
     log('reserve', { feature: 'agents', itemId: agent.id, itemName: agent.name });
     if (!hasSubmitted) {
-      forceLeadGate('hard');
+      triggerLeadGate('reserve');
       return;
     }
     setReserveAgent(agent);
@@ -82,7 +82,7 @@ const AgentsSection = () => {
   const openReserveGeneric = () => {
     log('reserve', { feature: 'agents', generic: true });
     if (!hasSubmitted) {
-      forceLeadGate('hard');
+      triggerLeadGate('reserve');
       return;
     }
     setReserveGeneric(true);

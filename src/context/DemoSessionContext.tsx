@@ -28,15 +28,15 @@ export interface DemoEvent {
   meta?: Record<string, string | number | boolean | null>;
 }
 
-// Gate lifecycle progression — monotonically advances.
-export type GateStage = 'banner' | 'soft' | 'hard' | 'submitted';
+// Gate lifecycle marker — retained for backward compat with any prior data
+// in localStorage, though the new intent-trigger gate machine (useLeadGate)
+// tracks per-trigger dismissals in its own storage key.
+export type GateStage = 'trigger' | 'submitted';
 
 export interface DemoSession {
   id: string;               // random UUID
   startedAt: string;        // ISO
   events: DemoEvent[];
-  bannerDismissedAt: string | null;
-  softDismissedAt:   string | null;
   submittedAt:       string | null;
   submittedEmail:    string | null;
   submittedName:     string | null;
@@ -48,11 +48,7 @@ interface DemoSessionContextValue {
   session: DemoSession;
   /** Log a tracked event. Cheap — never awaits. */
   log: (kind: string, meta?: DemoEvent['meta']) => void;
-  /** Note that the banner-strip was dismissed by the user. */
-  dismissBanner: () => void;
-  /** Note that the soft (dismissible) modal was dismissed. */
-  dismissSoft: () => void;
-  /** Persist a completed submission — moves gate to `submitted`. */
+  /** Persist a completed submission. */
   markSubmitted: (data: {
     email: string; fullName: string; companyName: string; role?: string;
   }) => void;
@@ -91,8 +87,6 @@ function freshSession(): DemoSession {
     id: randomId(),
     startedAt: new Date().toISOString(),
     events: [],
-    bannerDismissedAt: null,
-    softDismissedAt: null,
     submittedAt: null,
     submittedEmail: null,
     submittedName: null,
@@ -127,20 +121,6 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
       return { ...prev, events: [...prev.events, next].slice(-200) };
     });
   }, []);
-
-  const dismissBanner = useCallback(() => {
-    setSession((prev) => prev.bannerDismissedAt
-      ? prev
-      : { ...prev, bannerDismissedAt: new Date().toISOString() });
-    log('gate', { stage: 'banner', dismissed: true });
-  }, [log]);
-
-  const dismissSoft = useCallback(() => {
-    setSession((prev) => prev.softDismissedAt
-      ? prev
-      : { ...prev, softDismissedAt: new Date().toISOString() });
-    log('gate', { stage: 'soft', dismissed: true });
-  }, [log]);
 
   const markSubmitted = useCallback((data: {
     email: string; fullName: string; companyName: string; role?: string;
@@ -180,12 +160,10 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo<DemoSessionContextValue>(() => ({
     session,
     log,
-    dismissBanner,
-    dismissSoft,
     markSubmitted,
     hasSubmitted: !!session.submittedAt,
     telemetryUseCase,
-  }), [session, log, dismissBanner, dismissSoft, markSubmitted, telemetryUseCase]);
+  }), [session, log, markSubmitted, telemetryUseCase]);
 
   return (
     <DemoSessionContext.Provider value={value}>

@@ -14,6 +14,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth, DemoRole } from '@/context/AuthContext';
 import { useDemoSession } from '@/context/DemoSessionContext';
+import { triggerLeadGate } from '@/components/lead/DemoLeadGateMount';
 import {
   ShieldCheck, User, Settings, Terminal, Sparkles, ArrowRight,
   Plug, Bot, CheckCircle2,
@@ -22,10 +23,16 @@ import {
 const DemoLanding = () => {
   const { enterDemo } = useAuth();
   const navigate = useNavigate();
-  const { log } = useDemoSession();
+  const { log, hasSubmitted } = useDemoSession();
 
   const handleEnter = (role: DemoRole, cardLabel: string) => {
     log('role', { role, cardLabel });
+    // Fire the "role" trigger so the popup appears right before we send
+    // them into the demo. It's dismissable — a "no" doesn't block entry.
+    if (!hasSubmitted) triggerLeadGate('role');
+    enterDemo(role);
+    navigate('/');
+  };
     enterDemo(role);
     navigate('/');
   };

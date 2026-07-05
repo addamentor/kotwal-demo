@@ -1,68 +1,53 @@
 /**
- * DemoLeadGateMount — the single top-level mount that renders the gate.
+ * DemoLeadGateMount — top-level mount that renders the demo lead popup.
  *
  * Owns two responsibilities:
- *   1. Tracks route changes and section clicks into the DemoSession log
- *      (so the "sections opened" and "routes visited" telemetry stays fresh).
- *   2. Renders the correct gate variant based on `useLeadGate`.
+ *   1. Tracks route changes into the DemoSession log (so "sections opened",
+ *      "dashboard entered", "routes visited" telemetry stays fresh).
+ *   2. Renders the popup when `useLeadGate` reports a pending trigger.
  *
- * Exposed as `<DemoLeadGateMount />` in App.tsx.
- *
- * External components that want to force a hard gate (e.g. Reserve buttons
- * on MCP / Agents cards) can dispatch a `kotwal-demo:force-gate` custom
- * event with `{ mode: 'soft' | 'hard' }` in the detail; this mount listens
- * and reacts.
+ * External components fire triggers via the exported `triggerLeadGate()`
+ * helper, which dispatches a `kotwal-demo:trigger-gate` window event with
+ * the reason in `detail.reason`. This mount listens and forwards to the
+ * `useLeadGate` hook. Callers use this instead of importing the hook so
+ * any component in the tree can trigger without threading refs through.
  */
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useDemoSession } from '@/context/DemoSessionContext';
 import { useLeadGate } from './useLeadGate';
+import type { LeadGateReason } from './useLeadGate';
 import DemoLeadGate from './DemoLeadGate';
-import { LeadGateMode } from './DemoLeadGate';
+
+const EVENT_NAME = 'kotwal-demo:trigger-gate';
 
 const DemoLeadGateMount = () => {
   const location = useLocation();
-  const { log, dismissBanner, dismissSoft } = useDemoSession();
-  const { mode, force, clearForce, hasSubmitted } = useLeadGate();
+  const { log } = useDemoSession();
+  const { pending, trigger, dismiss, clear, hasSubmitted } = useLeadGate();
 
   // Route logging — one `route` event per pathname change
   useEffect(() => {
     log('route', { path: location.pathname });
   }, [location.pathname, log]);
 
-  // Listen for external "force this gate open" events (Reserve clicks, etc.)
+  // Listen for external "fire this trigger" events
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { mode?: 'soft' | 'hard' } | undefined;
-      if (detail?.mode) force(detail.mode);
+      const detail = (e as CustomEvent).detail as { reason?: LeadGateReason } | undefined;
+      if (detail?.reason) trigger(detail.reason);
     };
-    window.addEventListener('kotwal-demo:force-gate', handler as EventListener);
-    return () => window.removeEventListener('kotwal-demo:force-gate', handler as EventListener);
-  }, [force]);
+    window.addEventListener(EVENT_NAME, handler as EventListener);
+    return () => window.removeEventListener(EVENT_NAME, handler as EventListener);
+  }, [trigger]);
 
-  const handleDismiss = () => {
-    // The mode we're currently rendering decides which dismiss to record
-    if (mode === 'banner') dismissBanner();
-    else if (mode === 'soft') dismissSoft();
-    // Hard mode is not dismissible; the caller never gets here for it.
-    clearForce();
-  };
-
-  const handleSubmitted = () => {
-    // The session context has marked us submitted; drop any force override.
-    clearForce();
-  };
-
-  // Nothing to render — either the visitor submitted, or we're on a page
-  // that never gates (chat).
   if (hasSubmitted) return null;
-  if (mode === 'hidden') return null;
 
   return (
     <DemoLeadGate
-      mode={mode as Exclude<LeadGateMode, 'hidden'>}
-      onDismiss={handleDismiss}
-      onSubmitted={handleSubmitted}
+      reason={pending}
+      onDismiss={dismiss}
+      onSubmitted={clear}
     />
   );
 };
@@ -70,10 +55,9 @@ const DemoLeadGateMount = () => {
 export default DemoLeadGateMount;
 
 /**
- * Helper — dispatch a global "force this gate" event. Callers use this
- * instead of importing the hook, so any component in the tree can trigger
- * the gate without threading refs through.
+ * Dispatch a "fire this trigger" event from anywhere in the tree.
+ * Callers use this instead of importing `useLeadGate` directly.
  */
-export function forceLeadGate(mode: 'soft' | 'hard') {
-  window.dispatchEvent(new CustomEvent('kotwal-demo:force-gate', { detail: { mode } }));
+export function triggerLeadGate(reason: LeadGateReason) {
+  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { reason } }));
 }
