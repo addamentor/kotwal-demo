@@ -1,65 +1,119 @@
+/**
+ * ChatMessage — rail-aligned message block, matching the real kotwaluiapp.
+ *
+ * Both user and assistant messages span the full content column. A left
+ * gutter carries a short uppercase role label + timestamp, and a small
+ * accent stripe separates user (muted) from assistant (primary). No
+ * chat-bubble avatars — deliberately not the ChatGPT / Anthropic look.
+ *
+ * Assistant messages get hover-revealed Copy + Save-as-PDF controls via
+ * MessageActions. During streaming those are hidden so users can't copy a
+ * half-written response.
+ */
 import { Message } from '@/types/chat';
 import MarkdownRenderer from './MarkdownRenderer';
 import MessageActions from './MessageActions';
+import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
   message: Message;
   isTyping?: boolean;
-  /** Optional label for the model that produced the response — shown in exports. */
+  /** Label of the model that produced this response. */
   modelLabel?: string | null;
 }
 
+const formatTime = (date: Date): string => {
+  try {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+};
+
 const ChatMessage = ({ message, isTyping, modelLabel }: ChatMessageProps) => {
   const isUser = message.role === 'user';
-
-  if (isUser) {
-    return (
-      <div className="flex w-full justify-end pl-8 sm:pl-16 fade-in">
-        <div className="relative max-w-[85%] rounded-3xl bg-secondary px-5 py-2.5 text-secondary-foreground shadow-sm">
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        </div>
-      </div>
-    );
-  }
+  const timeLabel = message.timestamp ? formatTime(new Date(message.timestamp)) : '';
 
   return (
-    <div className="group flex w-full gap-3 sm:gap-4 pr-4 sm:pr-10 fade-in">
-      {/* Avatar */}
-      <div className="flex-shrink-0 w-8 h-8 mt-0.5">
-        <div className="w-8 h-8 rounded-full bg-background border border-border/50 flex items-center justify-center p-1.5 shadow-sm">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-foreground w-full h-full"
-          >
-            <path
-              d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.5963 3.8558L13.1038 8.364l2.0201-1.1638a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.4066-.6813zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6099-1.4997z"
-              fill="currentColor"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Message Content */}
-      <div className="flex-1 min-w-0">
-        <div className="prose-chat px-1">
-          <div className={isTyping ? 'typing-cursor' : ''}>
-            <MarkdownRenderer content={message.content} />
-          </div>
-        </div>
-        {/* Actions: copy + save-as-pdf. Hover-reveal on desktop, always on touch. */}
-        {!isTyping && message.content && (
-          <MessageActions
-            content={message.content}
-            timestamp={message.timestamp}
-            modelLabel={modelLabel}
-            className="px-1"
+    <article
+      className={cn(
+        'group fade-in grid grid-cols-[68px_1fr] gap-4 px-3 py-3 rounded-lg',
+        // User prompts are slightly lifted so the eye can find "who said what"
+        // without needing chat bubbles.
+        isUser ? 'bg-muted/30' : 'bg-transparent',
+      )}
+      data-role={message.role}
+    >
+      {/* ── Left gutter: role label + accent stripe + timestamp ──────── */}
+      <header className="flex flex-col items-start gap-1.5 pt-0.5 select-none">
+        <div className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className={cn(
+              'h-3 w-1 rounded-sm',
+              isUser ? 'bg-foreground/40' : 'bg-primary',
+            )}
           />
+          <span
+            className={cn(
+              'text-[10px] font-bold uppercase tracking-[0.12em]',
+              isUser ? 'text-muted-foreground' : 'text-primary',
+            )}
+          >
+            {isUser ? 'You' : 'Kotwal'}
+          </span>
+        </div>
+        {timeLabel && !isTyping && (
+          <span className="text-[10px] font-mono text-muted-foreground/70">
+            {timeLabel}
+          </span>
+        )}
+      </header>
+
+      {/* ── Content ──────────────────────────────────────────────────── */}
+      <div className="min-w-0 pt-0.5">
+        {isUser ? (
+          <p className="whitespace-pre-wrap break-words text-[0.92rem] leading-relaxed text-foreground">
+            {message.content}
+          </p>
+        ) : (
+          <>
+            <div className="prose-chat">
+              <div className={isTyping ? 'typing-cursor' : ''}>
+                <MarkdownRenderer content={message.content} />
+              </div>
+            </div>
+            {!isTyping && message.content && (
+              <MessageActions
+                content={message.content}
+                timestamp={message.timestamp}
+                modelLabel={modelLabel}
+              />
+            )}
+          </>
         )}
       </div>
-    </div>
+    </article>
   );
 };
 
 export default ChatMessage;
+
+/** Streaming placeholder — three bouncing dots in the same rail layout. */
+export const TypingIndicator = () => (
+  <article className="grid grid-cols-[68px_1fr] gap-4 px-3 py-3 fade-in">
+    <header className="flex flex-col items-start gap-1.5 pt-0.5 select-none">
+      <div className="flex items-center gap-2">
+        <span className="h-3 w-1 rounded-sm bg-primary" aria-hidden="true" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
+          Kotwal
+        </span>
+      </div>
+    </header>
+    <div className="flex items-center gap-1 py-1.5">
+      <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.15s]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" />
+    </div>
+  </article>
+);

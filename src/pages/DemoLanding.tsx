@@ -13,6 +13,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { useAuth, DemoRole } from '@/context/AuthContext';
+import { useDemoSession } from '@/context/DemoSessionContext';
 import {
   ShieldCheck, User, Settings, Terminal, Sparkles, ArrowRight,
   Plug, Bot, CheckCircle2,
@@ -21,8 +22,10 @@ import {
 const DemoLanding = () => {
   const { enterDemo } = useAuth();
   const navigate = useNavigate();
+  const { log } = useDemoSession();
 
-  const handleEnter = (role: DemoRole) => {
+  const handleEnter = (role: DemoRole, cardLabel: string) => {
+    log('role', { role, cardLabel });
     enterDemo(role);
     navigate('/');
   };
@@ -70,7 +73,7 @@ const DemoLanding = () => {
           <div className="grid sm:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {/* User */}
             <button
-              onClick={() => handleEnter('user')}
+              onClick={() => handleEnter('user', 'user')}
               className="group relative flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-7 text-left transition-all hover:border-blue-500/50 hover:bg-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10"
             >
               <div className="rounded-xl bg-blue-500/15 p-3.5">
@@ -95,7 +98,7 @@ const DemoLanding = () => {
 
             {/* Admin */}
             <button
-              onClick={() => handleEnter('admin')}
+              onClick={() => handleEnter('admin', 'admin')}
               className="group relative flex flex-col items-center gap-4 rounded-2xl border border-purple-500/40 bg-purple-500/5 p-7 text-left transition-all hover:border-purple-500/70 hover:bg-purple-500/10 hover:shadow-xl hover:shadow-purple-500/10"
             >
               <span className="absolute top-3 right-3 rounded-full bg-purple-500/25 border border-purple-500/40 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-purple-200">
@@ -123,7 +126,7 @@ const DemoLanding = () => {
 
             {/* Developer / VS Code */}
             <button
-              onClick={() => handleEnter('admin')}
+              onClick={() => handleEnter('admin', 'developer')}
               className="group relative flex flex-col items-center gap-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-7 text-left transition-all hover:border-emerald-500/70 hover:bg-emerald-500/10 hover:shadow-xl hover:shadow-emerald-500/10"
             >
               <span className="absolute top-3 right-3 rounded-full bg-emerald-500/25 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-emerald-200">

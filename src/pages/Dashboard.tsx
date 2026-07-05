@@ -9,10 +9,16 @@ import ChatModelsSection from '@/components/dashboard/sections/ChatModelsSection
 import BillingSection from '@/components/dashboard/sections/BillingSection';
 import SecuritySection from '@/components/dashboard/sections/SecuritySection';
 import PolicySection from '@/components/dashboard/sections/PolicySection';
+import ProjectsSection from '@/components/dashboard/sections/ProjectsSection';
+import UsageSection from '@/components/dashboard/sections/UsageSection';
+import DeviceTokensSection from '@/components/dashboard/sections/DeviceTokensSection';
+import TopicRestrictionsSection from '@/components/dashboard/sections/TopicRestrictionsSection';
+import SettingsSection from '@/components/dashboard/sections/SettingsSection';
 import MCPServersSection from '@/components/dashboard/sections/MCPServersSection';
 import AgentsSection from '@/components/dashboard/sections/AgentsSection';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoSession } from '@/context/DemoSessionContext';
 import { fetchLicenseInfo, LicenseInfo } from '@/services/adminApi';
 
 const sectionMeta: Record<
@@ -54,6 +60,26 @@ const sectionMeta: Record<
     title: 'Detection Policy',
     description: 'Tune severity, actions, redaction strategy, and allowlists per category.',
   },
+  projects: {
+    title: 'Projects',
+    description: 'Scope prompts, audit trails, and budgets by initiative.',
+  },
+  usage: {
+    title: 'Usage & Cost',
+    description: 'Token consumption and spend across users, models, and projects.',
+  },
+  'device-tokens': {
+    title: 'Device Tokens',
+    description: 'Issue long-lived tokens for VS Code, kotwal-cli, and CI runners.',
+  },
+  'topic-restrictions': {
+    title: 'Topic Restrictions',
+    description: 'Block or warn on entire categories of prompts, independent of PII detection.',
+  },
+  settings: {
+    title: 'Settings',
+    description: 'Organisation identity, feature flags, and notification preferences.',
+  },
   'mcp-servers': {
     title: 'MCP Servers',
     description: 'Connect governed tool servers — GitHub, Jira, Notion, Slack, and more. Coming next.',
@@ -70,9 +96,24 @@ const Dashboard = () => {
   const header = sectionMeta[activeSection];
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { log } = useDemoSession();
   const [licenseInfo, setLicenseInfo] = useState<LicenseInfo | null>(null);
   const [loadingLicenseInfo, setLoadingLicenseInfo] = useState(false);
   const [licenseError, setLicenseError] = useState<string | null>(null);
+
+  // Track section navigation for the progressive lead gate. `useLeadGate`
+  // reads the count of distinct `section` events to decide when to escalate.
+  const changeSection = useCallback((next: DashboardSection) => {
+    log('section', { id: next });
+    setActiveSection(next);
+  }, [log]);
+
+  // Fire an initial section event for the default view so the count starts
+  // from 1 when the visitor lands on the dashboard.
+  useEffect(() => {
+    log('section', { id: activeSection });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadLicenseInfo = useCallback(async () => {
     setLoadingLicenseInfo(true);
@@ -103,10 +144,10 @@ const Dashboard = () => {
           <ManageUsersSection
             onEditUser={(email) => {
               setEditUserEmail(email);
-              setActiveSection('edit-user');
+              changeSection('edit-user');
             }}
             onAddUser={() => {
-              setActiveSection('add-user');
+              changeSection('add-user');
             }}
           />
         );
@@ -129,6 +170,16 @@ const Dashboard = () => {
         return <SecuritySection />;
       case 'policy':
         return <PolicySection />;
+      case 'projects':
+        return <ProjectsSection />;
+      case 'usage':
+        return <UsageSection />;
+      case 'device-tokens':
+        return <DeviceTokensSection />;
+      case 'topic-restrictions':
+        return <TopicRestrictionsSection />;
+      case 'settings':
+        return <SettingsSection />;
       case 'mcp-servers':
         return <MCPServersSection />;
       case 'agents':
@@ -140,7 +191,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <DashboardSidebar activeSection={activeSection} onSelect={setActiveSection} />
+      <DashboardSidebar activeSection={activeSection} onSelect={changeSection} />
       <section className="flex-1 overflow-y-auto px-10 py-8">
         <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

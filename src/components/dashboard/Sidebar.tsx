@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, UserPlus, Pencil, Bot, CreditCard,
-  ShieldCheck, FileText, Plug, Sparkles,
+  ShieldCheck, FileText, Plug, Sparkles, FolderKanban, KeyRound,
+  BarChart3, Ban, Settings,
 } from 'lucide-react';
 
 export type DashboardSection =
@@ -13,6 +14,11 @@ export type DashboardSection =
   | 'billing'
   | 'security'
   | 'policy'
+  | 'projects'
+  | 'usage'
+  | 'device-tokens'
+  | 'topic-restrictions'
+  | 'settings'
   | 'mcp-servers'
   | 'agents';
 
@@ -44,19 +50,22 @@ const BADGE_LABEL: Record<NonNullable<NavItem['badge']>, string> = {
 
 const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) => {
   const mainNav: NavItem[] = [
-    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'manage-users', label: 'Manage Users', icon: Users },
-    { id: 'add-user', label: 'Add New User', icon: UserPlus, isSub: true },
-    { id: 'edit-user', label: 'Edit User', icon: Pencil, isSub: true },
-    { id: 'chat-models', label: 'Manage Chat Models', icon: Bot },
-    { id: 'billing', label: 'Manage Billing', icon: CreditCard },
-    { id: 'security', label: 'View Security Alerts', icon: ShieldCheck },
-    { id: 'policy', label: 'Detection Policy', icon: FileText },
+    { id: 'overview',           label: 'Dashboard',           icon: LayoutDashboard },
+    { id: 'manage-users',       label: 'Manage Users',        icon: Users },
+    { id: 'add-user',           label: 'Add New User',        icon: UserPlus, isSub: true },
+    { id: 'edit-user',          label: 'Edit User',           icon: Pencil,   isSub: true },
+    { id: 'projects',           label: 'Projects',            icon: FolderKanban },
+    { id: 'usage',              label: 'Usage & Cost',        icon: BarChart3 },
+    { id: 'chat-models',        label: 'Manage Chat Models',  icon: Bot },
+    { id: 'device-tokens',      label: 'Device Tokens',       icon: KeyRound, badge: 'new' },
+    { id: 'topic-restrictions', label: 'Topic Restrictions',  icon: Ban },
+    { id: 'billing',            label: 'Manage Billing',      icon: CreditCard },
+    { id: 'security',           label: 'View Security Alerts', icon: ShieldCheck },
+    { id: 'policy',             label: 'Detection Policy',    icon: FileText },
+    { id: 'settings',           label: 'Settings',            icon: Settings },
     // ── Roadmap preview items ────────────────────────────────────────
-    // Rendered with a "Next" / "Soon" chip so users understand they aren't
-    // live yet, but the section itself is interactive (waitlist, previews).
-    { id: 'mcp-servers', label: 'MCP Servers',  icon: Plug,      badge: 'next' },
-    { id: 'agents',      label: 'Agents',       icon: Sparkles,  badge: 'soon' },
+    { id: 'mcp-servers',        label: 'MCP Servers',         icon: Plug,     badge: 'next' },
+    { id: 'agents',             label: 'Agents',              icon: Sparkles, badge: 'soon' },
   ];
 
   return (
@@ -69,7 +78,7 @@ const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) =>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
         {mainNav.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
@@ -102,7 +111,7 @@ const DashboardSidebar = ({ activeSection, onSelect }: DashboardSidebarProps) =>
         })}
       </nav>
 
-      {/* Roadmap footer — legend for the "Soon" / "Next" chips */}
+      {/* Roadmap footer — legend for the chips */}
       <div className="border-t border-sidebar-border px-4 py-3">
         <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 font-semibold mb-1.5">
           Legend

@@ -9,8 +9,10 @@ import DemoLanding from "./pages/DemoLanding";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { ProjectProvider } from "./context/ProjectContext";
+import { DemoSessionProvider } from "./context/DemoSessionContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import DemoBanner from "./components/DemoBanner";
+import DemoLeadGateMount from "./components/lead/DemoLeadGateMount";
 
 const queryClient = new QueryClient();
 
@@ -22,29 +24,34 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/demo" element={<DemoLanding />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <DemoBanner />
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute roles={['admin']}>
-                    <DemoBanner />
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            {/* DemoSessionProvider sits inside BrowserRouter so the session
+                context and the lead-gate hook can both read `useLocation`. */}
+            <DemoSessionProvider>
+              <DemoLeadGateMount />
+              <Routes>
+                <Route path="/demo" element={<DemoLanding />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <DemoBanner />
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <DemoBanner />
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </DemoSessionProvider>
           </BrowserRouter>
         </TooltipProvider>
       </ProjectProvider>

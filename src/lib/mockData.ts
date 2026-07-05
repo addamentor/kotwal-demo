@@ -592,19 +592,239 @@ export type WaitlistEntry = {
 };
 
 // ─── Projects (client-only) ──────────────────────────────────────────
-// Powers the ProjectSwitcher chip in the chat header. Static list; changing
-// projects has no server-side effect in the demo.
+// Powers the ProjectSwitcher chip in the chat header *and* the ProjectsSection
+// grid. The extra fields are only used by the dashboard section.
 
 export interface DemoProject {
   id: string;
   name: string;
   description?: string;
   colorHex: string;
+  // ── Dashboard-only fields ─────────────────────────────────────────
+  status?: 'active' | 'paused' | 'archived';
+  members?: number;
+  budgetTokens?: number;         // total token budget for the current period
+  usedTokens?: number;           // tokens consumed so far this period
+  spendUsd?: number;             // running spend in USD
+  ownerName?: string;
+  updatedAt?: string;            // ISO timestamp for "last active"
+  usageSpark?: number[];         // ~14 samples powering the sparkline
 }
 
 export const MOCK_PROJECTS: DemoProject[] = [
-  { id: 'proj-eu-ai-act', name: 'EU AI Act Prep',       description: 'Compliance mapping and evidence collection', colorHex: '#6366f1' },
-  { id: 'proj-q4-board',   name: 'Q4 Board Deck',        description: 'Board narrative + supporting materials',      colorHex: '#f59e0b' },
-  { id: 'proj-support',    name: 'Support Copilot',      description: 'Draft replies and triage tickets',            colorHex: '#10b981' },
-  { id: 'proj-security',   name: 'Security Reviews',     description: 'Vendor + design review notes',                colorHex: '#ef4444' },
+  {
+    id: 'proj-eu-ai-act', name: 'EU AI Act Prep', colorHex: '#6366f1',
+    description: 'Compliance mapping and evidence collection',
+    status: 'active', members: 6,
+    budgetTokens: 2_500_000, usedTokens: 1_620_400, spendUsd: 240.6,
+    ownerName: 'Sarah Chen', updatedAt: '2026-06-30T15:12:00Z',
+    usageSpark: [4, 8, 12, 9, 18, 22, 14, 26, 34, 28, 40, 38, 46, 52],
+  },
+  {
+    id: 'proj-q4-board', name: 'Q4 Board Deck', colorHex: '#f59e0b',
+    description: 'Board narrative + supporting materials',
+    status: 'active', members: 4,
+    budgetTokens: 1_200_000, usedTokens: 486_200, spendUsd: 71.4,
+    ownerName: 'Alex Martinez', updatedAt: '2026-07-01T09:20:00Z',
+    usageSpark: [3, 5, 6, 4, 8, 6, 9, 12, 8, 11, 14, 12, 18, 20],
+  },
+  {
+    id: 'proj-support', name: 'Support Copilot', colorHex: '#10b981',
+    description: 'Draft replies and triage tickets',
+    status: 'active', members: 12,
+    budgetTokens: 5_000_000, usedTokens: 3_842_100, spendUsd: 512.9,
+    ownerName: 'Priya Sharma', updatedAt: '2026-07-03T18:04:00Z',
+    usageSpark: [30, 42, 38, 48, 55, 62, 58, 70, 68, 75, 82, 78, 88, 92],
+  },
+  {
+    id: 'proj-security', name: 'Security Reviews', colorHex: '#ef4444',
+    description: 'Vendor + design review notes',
+    status: 'paused', members: 3,
+    budgetTokens: 800_000, usedTokens: 220_000, spendUsd: 34.8,
+    ownerName: 'James Wilson', updatedAt: '2026-06-15T11:33:00Z',
+    usageSpark: [10, 12, 8, 14, 11, 6, 4, 5, 3, 4, 2, 1, 1, 0],
+  },
 ];
+
+// ─── Usage timeseries ────────────────────────────────────────────────
+// A 30-day series for the UsageSection. Values are token counts per day, per
+// model. Sums-per-day and cost projections are derived at render time.
+
+export interface UsageSample {
+  date: string;        // 'YYYY-MM-DD'
+  openai: number;
+  anthropic: number;
+  gemini: number;
+  deepseek: number;
+}
+
+// Small deterministic PRNG so the demo dataset is stable across reloads
+function seededSeries(seed: number, base: number, spread: number, days: number): number[] {
+  const out: number[] = [];
+  let x = seed;
+  for (let i = 0; i < days; i += 1) {
+    x = (x * 9301 + 49297) % 233280;
+    const noise = (x / 233280) * 2 - 1; // -1..1
+    out.push(Math.max(0, Math.round(base + noise * spread + i * (base * 0.015))));
+  }
+  return out;
+}
+
+function buildUsageSeries(days = 30): UsageSample[] {
+  const today = new Date('2026-07-04T00:00:00Z').getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const openai    = seededSeries(101, 42_000, 12_000, days);
+  const anthropic = seededSeries(202, 38_000, 10_000, days);
+  const gemini    = seededSeries(303, 21_000,  8_000, days);
+  const deepseek  = seededSeries(404,  9_000,  4_000, days);
+  const out: UsageSample[] = [];
+  for (let i = 0; i < days; i += 1) {
+    const d = new Date(today - (days - 1 - i) * oneDay);
+    const iso = d.toISOString().slice(0, 10);
+    out.push({
+      date: iso,
+      openai: openai[i], anthropic: anthropic[i],
+      gemini: gemini[i], deepseek: deepseek[i],
+    });
+  }
+  return out;
+}
+
+export const MOCK_USAGE_TIMESERIES: UsageSample[] = buildUsageSeries(30);
+
+// Aggregate summaries used by cards + tables in UsageSection
+export const MOCK_USAGE_BY_USER = [
+  { email: 'sarah.chen@acme.com',    name: 'Sarah Chen',    tokens: 892_400, spendUsd: 132.1, sessions: 214 },
+  { email: 'alex.martinez@acme.com', name: 'Alex Martinez', tokens: 764_200, spendUsd: 113.5, sessions: 187 },
+  { email: 'priya.sharma@acme.com',  name: 'Priya Sharma',  tokens: 618_700, spendUsd:  92.3, sessions: 156 },
+  { email: 'raj.patel@acme.com',     name: 'Raj Patel',     tokens: 512_050, spendUsd:  76.2, sessions: 128 },
+  { email: 'james.wilson@acme.com',  name: 'James Wilson',  tokens: 421_800, spendUsd:  62.4, sessions: 104 },
+  { email: 'emily.jones@acme.com',   name: 'Emily Jones',   tokens: 278_400, spendUsd:  41.7, sessions:  68 },
+];
+
+// ─── Device tokens (VS Code / CLI / CI) ──────────────────────────────
+// Backs the DeviceTokensSection.
+
+export interface DemoDeviceToken {
+  id: string;
+  label: string;
+  clientType: 'vscode' | 'cli' | 'ci';
+  createdAt: string;         // ISO
+  lastUsedAt: string | null; // ISO or null (never used)
+  status: 'active' | 'revoked';
+  tokenPreview: string;      // shown in table, e.g. 'kw_dt_87F2…D3A1'
+  scopes: string[];
+  createdByName?: string;
+}
+
+export const MOCK_DEVICE_TOKENS: DemoDeviceToken[] = [
+  {
+    id: 'tok-1', label: 'Sarah · VS Code (MacBook Pro)', clientType: 'vscode',
+    createdAt: '2026-06-01T09:14:00Z', lastUsedAt: '2026-07-04T13:22:00Z',
+    status: 'active', tokenPreview: 'kw_dt_87F2••••••D3A1',
+    scopes: ['chat.send', 'chat.history.read'], createdByName: 'Sarah Chen',
+  },
+  {
+    id: 'tok-2', label: 'Alex · VS Code (workstation)', clientType: 'vscode',
+    createdAt: '2026-05-22T11:00:00Z', lastUsedAt: '2026-07-03T08:41:00Z',
+    status: 'active', tokenPreview: 'kw_dt_5A19••••••B4C7',
+    scopes: ['chat.send', 'chat.history.read'], createdByName: 'Alex Martinez',
+  },
+  {
+    id: 'tok-3', label: 'CI runner · production',       clientType: 'ci',
+    createdAt: '2026-04-15T00:00:00Z', lastUsedAt: '2026-07-04T00:05:00Z',
+    status: 'active', tokenPreview: 'kw_dt_9BBE••••••2A17',
+    scopes: ['chat.send'], createdByName: 'Alex Martinez',
+  },
+  {
+    id: 'tok-4', label: 'Priya · kotwal-cli',            clientType: 'cli',
+    createdAt: '2026-03-08T12:30:00Z', lastUsedAt: '2026-06-19T17:02:00Z',
+    status: 'revoked', tokenPreview: 'kw_dt_310A••••••EF12',
+    scopes: ['chat.send', 'chat.history.read'], createdByName: 'Priya Sharma',
+  },
+];
+
+// ─── Topic restrictions ──────────────────────────────────────────────
+// Backs the TopicRestrictionsSection (subset of the real policy's
+// `topicRestrictions.blockedTopics` map, kept in a form that renders nicely).
+
+export interface DemoTopicRestriction {
+  id: string;              // canonical id used by the backend policy
+  label: string;           // display name
+  description: string;
+  enabled: boolean;
+  action: 'WARN' | 'BLOCK';
+  severity: number;        // 0..1
+  confidence: number;      // 0..1
+  category: 'safety' | 'compliance' | 'business';
+}
+
+export const MOCK_TOPIC_RESTRICTIONS: DemoTopicRestriction[] = [
+  {
+    id: 'WEAPONS',           label: 'Weapons & explosives',
+    description: 'Prevent generation or discussion of instructions for weapons or explosives.',
+    enabled: true,  action: 'BLOCK', severity: 1.0,  confidence: 0.9, category: 'safety',
+  },
+  {
+    id: 'HARMFUL_CONTENT',   label: 'Harmful content',
+    description: 'Self-harm, violence, or otherwise dangerous content.',
+    enabled: true,  action: 'BLOCK', severity: 1.0,  confidence: 0.9, category: 'safety',
+  },
+  {
+    id: 'COMPETITIVE_INTEL', label: 'Competitive intelligence',
+    description: 'Discussion of proprietary competitor data or scraping strategies.',
+    enabled: true,  action: 'BLOCK', severity: 0.9,  confidence: 0.85, category: 'business',
+  },
+  {
+    id: 'LEGAL_ADVICE',      label: 'Formal legal advice',
+    description: 'Prevent the model from posing as a lawyer or issuing binding legal advice.',
+    enabled: false, action: 'WARN',  severity: 0.7,  confidence: 0.8, category: 'compliance',
+  },
+  {
+    id: 'MEDICAL_DIAGNOSIS', label: 'Medical diagnosis',
+    description: 'Prevent the model from posing as a clinician or diagnosing conditions.',
+    enabled: false, action: 'WARN',  severity: 0.7,  confidence: 0.8, category: 'compliance',
+  },
+  {
+    id: 'HR_DECISIONS',      label: 'HR / hiring decisions',
+    description: 'Prevent the model from making binding HR or hiring decisions.',
+    enabled: false, action: 'WARN',  severity: 0.6,  confidence: 0.75, category: 'compliance',
+  },
+];
+
+// ─── Tenant settings ─────────────────────────────────────────────────
+// Backs the SettingsSection. Purely cosmetic in the demo.
+
+export interface DemoTenantSettings {
+  orgName: string;
+  domain: string;
+  timezone: string;
+  region: string;
+  contactEmail: string;
+  featureFlags: {
+    fileUploadEnabled: boolean;
+    projectsEnabled: boolean;
+    vsCodeExtensionEnabled: boolean;
+    piiRedactionMasking: 'TOKEN' | 'MASK' | 'FAKE';
+    dailyBudgetAlerts: boolean;
+    weeklyExecReport: boolean;
+  };
+  ownerNotificationEmails: string[];
+}
+
+export const MOCK_TENANT_SETTINGS: DemoTenantSettings = {
+  orgName: 'Acme Financial Services',
+  domain: 'acme.com',
+  timezone: 'Europe/London',
+  region: 'EU (Frankfurt)',
+  contactEmail: 'security@acme.com',
+  featureFlags: {
+    fileUploadEnabled: true,
+    projectsEnabled: true,
+    vsCodeExtensionEnabled: true,
+    piiRedactionMasking: 'TOKEN',
+    dailyBudgetAlerts: true,
+    weeklyExecReport: false,
+  },
+  ownerNotificationEmails: ['security@acme.com', 'compliance@acme.com'],
+};

@@ -22,6 +22,8 @@ import {
   Plug, Sparkles, ShieldCheck, ArrowRight, Search, Loader2, CheckCircle2, Info,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { useDemoSession } from '@/context/DemoSessionContext';
+import { forceLeadGate } from '@/components/lead/DemoLeadGateMount';
 import {
   MOCK_MCP_PREVIEW_SERVERS, MCPPreviewServer,
   WAITLIST_STORAGE_KEY, WaitlistEntry,
@@ -45,6 +47,7 @@ function writeWaitlist(entries: WaitlistEntry[]) {
 // ─── Component ───────────────────────────────────────────────────────
 const MCPServersSection = () => {
   const [query, setQuery] = useState('');
+  const { log, hasSubmitted } = useDemoSession();
   const [selectedServer, setSelectedServer] = useState<MCPPreviewServer | null>(null);
   const [reserveEmail, setReserveEmail] = useState('');
   const [reserving, setReserving] = useState(false);
@@ -73,6 +76,13 @@ const MCPServersSection = () => {
   }, [filtered]);
 
   const openReserve = (server: MCPPreviewServer) => {
+    log('reserve', { feature: 'mcp', itemId: server.id, itemName: server.name });
+    // If the visitor hasn't yet identified themselves, escalate to the hard
+    // lead gate — Reserve is the strongest signal of intent we get in the demo.
+    if (!hasSubmitted) {
+      forceLeadGate('hard');
+      return;
+    }
     setSelectedServer(server);
     setReserveEmail('');
   };

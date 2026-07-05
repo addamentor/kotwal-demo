@@ -26,6 +26,8 @@ import {
   Loader2, CheckCircle2, Search, Info, Zap,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { useDemoSession } from '@/context/DemoSessionContext';
+import { forceLeadGate } from '@/components/lead/DemoLeadGateMount';
 import {
   MOCK_AGENT_TEMPLATES, AgentTemplate, MOCK_AGENT_SAMPLE_RUNS,
   WAITLIST_STORAGE_KEY, WaitlistEntry,
@@ -50,6 +52,7 @@ const AgentsSection = () => {
   const [reserveGeneric, setReserveGeneric] = useState(false); // "Build custom agent" flow
   const [reserveEmail, setReserveEmail]   = useState('');
   const [reserving, setReserving]         = useState(false);
+  const { log, hasSubmitted } = useDemoSession();
 
   const filtered = useMemo(() => {
     if (!query.trim()) return MOCK_AGENT_TEMPLATES;
@@ -67,11 +70,21 @@ const AgentsSection = () => {
   const additional = filtered.filter((a) => !a.featured);
 
   const openReserveForAgent = (agent: AgentTemplate) => {
+    log('reserve', { feature: 'agents', itemId: agent.id, itemName: agent.name });
+    if (!hasSubmitted) {
+      forceLeadGate('hard');
+      return;
+    }
     setReserveAgent(agent);
     setReserveGeneric(false);
     setReserveEmail('');
   };
   const openReserveGeneric = () => {
+    log('reserve', { feature: 'agents', generic: true });
+    if (!hasSubmitted) {
+      forceLeadGate('hard');
+      return;
+    }
     setReserveGeneric(true);
     setReserveAgent(null);
     setReserveEmail('');
