@@ -31,19 +31,19 @@ interface Props {
 const HEADLINES: Record<LeadGateReason, { headline: string; subhead: string; primary: string; secondary: string }> = {
   landing: {
     headline: 'Trying Kotwal?',
-    subhead:  'Twenty seconds so our team can reach out with a tailored walk-through. No spam — just the follow-up you asked for.',
+    subhead:  '20 seconds so our team can reach out with a tailored walk-through.',
     primary:  'Send intro',
     secondary:'Continue browsing',
   },
   role: {
     headline: 'Great — one quick intro first?',
-    subhead:  "You'll see the full demo either way. Sharing your details means our team can follow up with the parts most relevant to your role.",
+    subhead:  "Sharing your details means our team can follow up with the parts most relevant to your role.",
     primary:  'Send & enter demo',
     secondary:'Skip for now',
   },
   'dashboard-entry': {
     headline: 'Welcome to the admin console',
-    subhead:  "Take a look around. In the meantime — mind sharing who's evaluating? Twenty seconds.",
+    subhead:  "Take a look around. In the meantime — mind sharing who's evaluating?",
     primary:  'Send intro',
     secondary:'Not now',
   },
@@ -61,7 +61,7 @@ const HEADLINES: Record<LeadGateReason, { headline: string; subhead: string; pri
   },
   dwell: {
     headline: "You've spent a few minutes here",
-    subhead:  'Clearly you know what you\'re looking for. Twenty seconds so our team can reach out with the details that matter to your setup.',
+    subhead:  'Clearly you know what you\'re looking for. 20 seconds so our team can reach out with the details that matter to your setup.',
     primary:  'Send intro',
     secondary:'Not now',
   },
@@ -69,32 +69,61 @@ const HEADLINES: Record<LeadGateReason, { headline: string; subhead: string; pri
 
 // ─── Submit helper ────────────────────────────────────────────────────
 
+/**
+ * Result of a submission attempt.
+ *   'ok'              — backend accepted (201) or dedup'd (409). Never re-ask.
+ *   'network-failed'  — couldn't reach the API. Still counts as submitted on
+ *                       the client — the visitor gave us their details, the
+ *                       demo shouldn't badger them just because our /api is
+ *                       unreachable. The event log carries the intent.
+ *   { validationError } — backend returned a 4xx we should surface so the
+ *                       visitor can correct their input.
+ */
+type SubmitOutcome =
+  | { kind: 'ok' }
+  | { kind: 'network-failed' }
+  | { kind: 'validation-error'; message: string };
+
 async function submitTrialRequest(
   payload: DemoLeadPayload,
   useCase: string,
-): Promise<void> {
-  const res = await fetch('/api/trial-requests', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      fullName:    payload.fullName,
-      email:       payload.email,
-      companyName: payload.companyName,
-      role:        payload.role,
-      useCase,
-      companySize: null,
-    }),
-  });
+): Promise<SubmitOutcome> {
+  let res: Response;
+  try {
+    res = await fetch('/api/trial-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName:    payload.fullName,
+        email:       payload.email,
+        companyName: payload.companyName,
+        role:        payload.role,
+        useCase,
+        companySize: null,
+      }),
+    });
+  } catch {
+    // Network / CORS / offline — the demo API may not be wired up in preview.
+    // We treat this as soft-success: keep the visitor's intent locally.
+    return { kind: 'network-failed' };
+  }
 
   // 201 (created) and 409 (already pending) both count as "we know you now".
-  if (res.status === 201 || res.status === 409) return;
+  if (res.status === 201 || res.status === 409) return { kind: 'ok' };
 
-  let msg = 'Something went wrong. Please try again.';
-  try {
-    const data = await res.json();
-    if (data?.error) msg = String(data.error);
-  } catch { /* not JSON */ }
-  throw new Error(msg);
+  // 4xx — likely a rejected email (free-mail, invalid, etc.). Surface it.
+  if (res.status >= 400 && res.status < 500) {
+    let message = 'Please double-check the details and try again.';
+    try {
+      const data = await res.json();
+      if (data?.error) message = String(data.error);
+    } catch { /* not JSON */ }
+    return { kind: 'validation-error', message };
+  }
+
+  // 5xx or other — same soft-success treatment as network fail. We captured
+  // the intent client-side; sales can chase from the event log.
+  return { kind: 'network-failed' };
 }
 
 // ─── Component ────────────────────────────────────────────────────────
@@ -109,12 +138,24 @@ const DemoLeadGate = ({ reason, onDismiss, onSubmitted }: Props) => {
       telemetryUseCase(),
     ].join('\n');
 
-    await submitTrialRequest(data, useCase);
+    const outcome = await submitTrialRequest(data, useCase);
+
+    // Validation errors from the backend get surfaced back to the form so
+    // the visitor can correct their input — we DO NOT mark as submitted.
+    if (outcome.kind === 'validation-error') {
+      log('gate.submit-rejected', { reason, message: outcome.message });
+      throw new Error(outcome.message);
+    }
+
+    // Both 'ok' and 'network-failed' flip the visitor into "submitted".
+    // For 'network-failed' this means we captured intent locally even if
+    // /api/trial-requests wasn't reachable — the visitor sees the same
+    // "thank you" and the popup never fires again on this device.
     markSubmitted({
       email: data.email, fullName: data.fullName,
       companyName: data.companyName, role: data.role,
     });
-    log('gate.submit', { reason });
+    log('gate.submit', { reason, outcome: outcome.kind });
     toast({
       title: 'Thank you.',
       description: `We'll be in touch at ${data.email} shortly. Enjoy the rest of the demo.`,

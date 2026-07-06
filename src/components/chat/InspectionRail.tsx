@@ -197,10 +197,6 @@ const InspectionRail = ({
             <CheckRow label="Sensitive data scanning" />
             <CheckRow label="Credentials & PII redaction" />
             <CheckRow label="Per-prompt audit logging" />
-            <p className="text-[11px] text-muted-foreground pt-1 leading-relaxed">
-              Send a prompt — Kotwal inspects it before it ever reaches the model.
-              Try one of the sample prompts to see the rail react in real time.
-            </p>
           </section>
         )}
       </div>

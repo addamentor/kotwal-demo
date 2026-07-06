@@ -216,3 +216,97 @@ export function isFreeMailDomain(email: string): boolean {
   if (at < 0) return false;
   return FREE_MAIL_DOMAINS.has(email.slice(at + 1).toLowerCase().trim());
 }
+
+// ─── Simple fake-email / fake-company detectors ───────────────────────
+// Small hand-curated lists — the goal is to stop obvious junk like
+// `test@test.com`, `asdf@mailinator.com`, `foo@bar.com`. Not exhaustive;
+// determined adversaries route around this easily. That's fine — we're
+// filtering noise, not defending against attackers.
+
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com', 'mailinator.net', '10minutemail.com', '10minutemail.net',
+  'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'guerrillamail.info',
+  'throwaway.email', 'throwawaymail.com', 'dispostable.com', 'trashmail.com',
+  'yopmail.com', 'sharklasers.com', 'getnada.com', 'nada.email',
+  'maildrop.cc', 'moakt.com', 'fakeinbox.com', 'mytemp.email',
+  'burnermail.io', 'anonaddy.me', 'simplelogin.com', 'temp-mail.io',
+  'mohmal.com', 'inbox-me.com', 'mailnesia.com',
+]);
+
+// Obvious placeholders as the local part of the email address.
+// We match the whole local part case-insensitively.
+const FAKE_LOCAL_PARTS = new Set([
+  'test', 'test1', 'test2', 'test123', 'testing',
+  'asdf', 'asdfasdf', 'qwerty', 'qwe', 'zxc',
+  'fake', 'foo', 'bar', 'baz', 'foobar',
+  'nobody', 'noone', 'no-reply', 'noreply',
+  'hello', 'hi', 'hey',
+  'abc', 'xyz', 'abcd', 'abcdef',
+  'a', 'aa', 'aaa', 'aaaa',
+  'user', 'user1', 'user123',
+  'example', 'sample', 'dummy', 'demo',
+]);
+
+// Common junk company names — same idea, keep it small.
+const FAKE_COMPANY_NAMES = new Set([
+  'test', 'testing', 'test co', 'test inc', 'test company',
+  'asdf', 'qwerty', 'fake', 'foo', 'bar', 'foobar',
+  'example', 'sample', 'dummy', 'demo',
+  'abc', 'xyz', 'company', 'my company',
+  'none', 'na', 'n/a', '-', 'x',
+]);
+
+/** True if the address looks like a disposable / burner mailbox. */
+export function isDisposableEmail(email: string): boolean {
+  const at = email.indexOf('@');
+  if (at < 0) return false;
+  const domain = email.slice(at + 1).toLowerCase().trim();
+  return DISPOSABLE_DOMAINS.has(domain);
+}
+
+/**
+ * Reasons the email looks obviously fake (test@…, asdf@…, all-digits, etc.).
+ * Returns `null` when the local part passes the smell test.
+ */
+export function looksLikeFakeEmail(email: string): string | null {
+  const at = email.indexOf('@');
+  if (at <= 0) return null;
+  const local  = email.slice(0, at).toLowerCase().trim();
+  const domain = email.slice(at + 1).toLowerCase().trim();
+
+  // Placeholder local parts
+  if (FAKE_LOCAL_PARTS.has(local)) return 'That looks like a placeholder email.';
+
+  // All-digits local part (`12345@…`) or all-repeated-char (`aaaa@…`)
+  if (/^\d+$/.test(local))       return 'That looks like a placeholder email.';
+  if (/^(.)\1{2,}$/.test(local)) return 'That looks like a placeholder email.';
+
+  // `something@test.com` / `foo@example.com` / `x@abc.xyz` — domain junk
+  const rootDomain = domain.split('.').slice(-2).join('.'); // e.g. test.com
+  const firstLabel = domain.split('.')[0];
+  if (
+    firstLabel === 'test' ||
+    firstLabel === 'example' ||
+    firstLabel === 'fake' ||
+    firstLabel === 'asdf' ||
+    firstLabel === 'foo' ||
+    firstLabel === 'bar' ||
+    rootDomain === 'test.com' ||
+    rootDomain === 'example.com' ||
+    rootDomain === 'example.org'
+  ) {
+    return 'That looks like a placeholder domain.';
+  }
+
+  return null;
+}
+
+/** True if the company name is obviously junk (test / asdf / example). */
+export function looksLikeFakeCompany(name: string): boolean {
+  const norm = name.trim().toLowerCase();
+  if (!norm) return false;
+  if (FAKE_COMPANY_NAMES.has(norm)) return true;
+  // All the same character, e.g. "aaaa" or "xxxx"
+  if (/^(.)\1{2,}$/.test(norm)) return true;
+  return false;
+}

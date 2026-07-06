@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
 import {
-  deriveNameFromEmail, deriveCompanyFromDomain, isFreeMailDomain,
+  deriveNameFromEmail, deriveCompanyFromDomain,
+  isFreeMailDomain, isDisposableEmail, looksLikeFakeEmail, looksLikeFakeCompany,
 } from '@/context/DemoSessionContext';
 import { cn } from '@/lib/utils';
 
@@ -86,11 +87,25 @@ const DemoLeadForm = ({
   const emailIssue = useMemo(() => {
     if (!email) return null;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address.';
-    if (isFreeMailDomain(email)) return 'Please use your work email — Kotwal is an enterprise product.';
+    if (isFreeMailDomain(email))
+      return 'Please use your work email.';
+    if (isDisposableEmail(email))
+      return 'Disposable / burner email addresses aren’t supported.';
+    const fake = looksLikeFakeEmail(email);
+    if (fake) return fake;
     return null;
   }, [email]);
 
-  const canSubmit = !!email && !!name && !!company && !emailIssue && !submitting;
+  const companyIssue = useMemo(() => {
+    if (!company) return null;
+    if (company.trim().length < 2) return 'Add your company name.';
+    if (looksLikeFakeCompany(company)) return 'Please use your real company name.';
+    return null;
+  }, [company]);
+
+  const canSubmit =
+    !!email && !!name && !!company &&
+    !emailIssue && !companyIssue && !submitting;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -152,6 +167,11 @@ const DemoLeadForm = ({
             required
             className={FIELD_CLS}
           />
+          {companyIssue && company && (
+            <p className="mt-1 text-[11px] text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {companyIssue}
+            </p>
+          )}
         </div>
       </div>
 
@@ -177,7 +197,6 @@ const DemoLeadForm = ({
         <ShieldCheck className="w-3 h-3 mt-0.5 text-emerald-600 shrink-0" />
         <span>
           By continuing you agree that Kotwal may contact you about your evaluation.
-          No marketing spam — just the follow-up you requested.
         </span>
       </p>
 
