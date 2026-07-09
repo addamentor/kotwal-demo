@@ -14,6 +14,7 @@ import { Sparkles } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { useDemoSession } from '@/context/DemoSessionContext';
+import { API_URLS } from '@/lib/url';
 import DemoLeadForm, { DemoLeadPayload } from './DemoLeadForm';
 import type { LeadGateReason } from './useLeadGate';
 
@@ -90,7 +91,7 @@ async function submitTrialRequest(
 ): Promise<SubmitOutcome> {
   let res: Response;
   try {
-    res = await fetch('/api/trial-requests', {
+    res = await fetch(API_URLS.trialRequests.base, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

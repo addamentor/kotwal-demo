@@ -49,6 +49,9 @@ export const API_URLS = {
   deviceTokens: {
     base: withBase('/api/device-tokens'),
   },
+  trialRequests: {
+    base: withBase('/api/trial-requests'),
+  },
 };
 
 export type ApiUrlKey = keyof typeof API_URLS;
