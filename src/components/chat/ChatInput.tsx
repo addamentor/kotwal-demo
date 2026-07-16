@@ -1,6 +1,7 @@
 import { useRef, useEffect, KeyboardEvent, useState } from 'react';
-import { ArrowUp, Sparkles } from 'lucide-react';
+import { ArrowUp, Sparkles, Globe, Server, Lock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import ProjectSwitcher from './ProjectSwitcher';
 import PromptLibrarySheet from './PromptLibrarySheet';
 
@@ -14,6 +15,37 @@ interface ChatInputProps {
   onInputChange: (value: string) => void;
   inputRef?: React.RefObject<HTMLTextAreaElement>;
 }
+
+/**
+ * A visually-present but disabled feature toggle for the demo. Shows the real
+ * product's capability (Web search, MCP tools) greyed out, with a tooltip that
+ * it's available in the live app. Never interactive.
+ */
+const LockedToggle = ({
+  icon: Icon,
+  label,
+}: {
+  icon: typeof Globe;
+  label: string;
+}) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span
+        role="button"
+        aria-disabled="true"
+        tabIndex={-1}
+        className="inline-flex items-center gap-1 rounded-lg border border-chat-input-border bg-chat-input/60 px-2 py-1 text-xs font-medium text-slate-400 cursor-not-allowed select-none"
+      >
+        <Icon className="h-3.5 w-3.5" />
+        <span>{label}</span>
+        <Lock className="h-3 w-3" />
+      </span>
+    </TooltipTrigger>
+    <TooltipContent side="top" className="text-xs">
+      {label} is available in the live app
+    </TooltipContent>
+  </Tooltip>
+);
 
 const ChatInput = ({
   onSend,
@@ -51,8 +83,8 @@ const ChatInput = ({
   };
 
   const handlePromptSelect = (prompt: string) => {
-    onInputChange(prompt);
-    setTimeout(() => textareaRef.current?.focus(), 0);
+    // The library assembles the full prompt; send it straight into the chat.
+    if (!disabled) onSend(prompt);
   };
 
   return (
@@ -104,6 +136,12 @@ const ChatInput = ({
             <div className="flex items-center gap-2">
               <p className="text-[10px] uppercase tracking-wide text-slate-500">Project</p>
               <ProjectSwitcher />
+            </div>
+
+            {/* Tool toggles — demo shows them locked (live-app only) */}
+            <div className="flex items-center gap-1.5">
+              <LockedToggle icon={Globe} label="Web search" />
+              <LockedToggle icon={Server} label="MCP" />
             </div>
 
             {/* Prompt Library button */}

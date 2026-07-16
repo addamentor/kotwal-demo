@@ -6,6 +6,7 @@ import WelcomeScreen from './WelcomeScreen';
 import Sidebar from './Sidebar';
 import DetectionNoticeBar, { DetectionNotice } from './DetectionNoticeBar';
 import InspectionRail from './InspectionRail';
+import DemoTopBar from './DemoTopBar';
 import {
   fetchChatModels,
   fetchChatResponse,
@@ -377,6 +378,9 @@ const ChatContainer = () => {
         }}
       />
       <main className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-white via-white to-slate-50/60">
+        {/* Feature-rich top toolbar (project scope + custom agents preview) */}
+        <DemoTopBar />
+
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-10">
           <div className="pb-32 pt-10">
