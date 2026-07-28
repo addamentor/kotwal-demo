@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kotwal — Enterprise AI Security Gateway</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%237a1e1e'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f5f2ec; --bg-elev:#ffffff; --bg-subtle:#eee8de; --bg-inverse:#0a0a0a;
+  --ink:#0a0a0a; --ink-strong:#000; --ink-muted:#525252; --ink-subtle:#8a8478; --ink-inverse:#f5f2ec;
+  --rule:#1f1f1f; --rule-soft:#d9d3c5; --rule-subtle:#e5e0d3;
+  --crimson:#7a1e1e; --crimson-tint:#f5e6e6;
+  --green:#1f5f1f; --green-tint:#e6efe0;
+  --navy:#1f3a68; --navy-tint:#e1e6ee;
+  --amber:#8b6914; --amber-tint:#f2e9d1;
+  --serif:'Fraunces','Georgia',serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans); background:var(--bg); color:var(--ink);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+
+/* ── Deck frame ─────────────────────────────────────────── */
+.deck{position:fixed;inset:0;}
+.slide{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:6vh 8vw;
+  opacity:0; visibility:hidden;
+  transform:translateY(24px) scale(0.99);
+  transition:opacity .5s ease, transform .5s ease, visibility .5s;
+  overflow:hidden;
+}
+.slide.active{opacity:1; visibility:visible; transform:none;}
+.slide.dark{background:var(--bg-inverse); color:var(--ink-inverse);}
+.slide.subtle{background:var(--bg-subtle);}
+
+/* stagger children in on active */
+.slide.active .reveal{animation:rise .6s cubic-bezier(.2,.7,.2,1) both;}
+.slide.active .reveal:nth-child(1){animation-delay:.05s}
+.slide.active .reveal:nth-child(2){animation-delay:.15s}
+.slide.active .reveal:nth-child(3){animation-delay:.25s}
+.slide.active .reveal:nth-child(4){animation-delay:.35s}
+.slide.active .reveal:nth-child(5){animation-delay:.45s}
+.slide.active .reveal:nth-child(6){animation-delay:.55s}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* ── Type ───────────────────────────────────────────────── */
+.eyebrow{font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem}
+.dark .eyebrow{color:rgba(245,242,236,.55)}
+h1{font-family:var(--serif);font-weight:400;line-height:1.02;letter-spacing:-.03em;color:var(--ink-strong);font-size:clamp(2.6rem,6.4vw,6rem)}
+.dark h1{color:#fff}
+h2{font-family:var(--serif);font-weight:400;line-height:1.08;letter-spacing:-.02em;color:var(--ink-strong);font-size:clamp(2rem,4.4vw,3.6rem);margin-bottom:1.6rem}
+.dark h2{color:#fff}
+.em{font-style:italic;color:var(--crimson)}
+.dark .em{color:#e88}
+.lead{font-size:clamp(1.05rem,1.6vw,1.4rem);line-height:1.55;color:var(--ink-muted);max-width:60ch}
+.dark .lead{color:rgba(245,242,236,.72)}
+.mono{font-family:var(--mono)}
+.underline{position:relative;display:inline-block;white-space:nowrap}
+.underline::after{content:"";position:absolute;left:0;right:0;bottom:.08em;height:.22em;background:rgba(31,95,31,.28);z-index:-1}
+
+/* ── Cards / grids ──────────────────────────────────────── */
+.grid{display:grid;gap:1.1rem;width:100%}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:6px;padding:1.5rem 1.4rem}
+.dark .card{background:#151515;border-color:#2a2a2a}
+.card .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.card h3{font-family:var(--sans);font-weight:600;font-size:1.05rem;color:var(--ink-strong);margin-bottom:.5rem;line-height:1.25}
+.dark .card h3{color:#fff}
+.card p{font-size:.9rem;line-height:1.55;color:var(--ink-muted)}
+.dark .card p{color:rgba(245,242,236,.62)}
+.card.bad{border-left:3px solid var(--crimson)}
+.card.good{border-left:3px solid var(--green)}
+.pill{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:100px;border:1px solid var(--rule-soft)}
+.pill.crimson{background:var(--crimson-tint);color:var(--crimson);border-color:transparent}
+.pill.green{background:var(--green-tint);color:var(--green);border-color:transparent}
+.pill.amber{background:var(--amber-tint);color:var(--amber);border-color:transparent}
+.pill.navy{background:var(--navy-tint);color:var(--navy);border-color:transparent}
+
+/* ── Stat row ───────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;width:100%}
+.stat .v{font-family:var(--serif);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:500;line-height:1;color:var(--crimson)}
+.dark .stat .v{color:#e88}
+.stat .l{font-size:.86rem;color:var(--ink-muted);margin-top:.5rem;line-height:1.35}
+.dark .stat .l{color:rgba(245,242,236,.6)}
+
+/* ── Bullets ────────────────────────────────────────────── */
+ul.checks{list-style:none;display:grid;gap:.9rem;margin-top:.4rem}
+ul.checks li{display:flex;gap:.8rem;align-items:flex-start;font-size:1.02rem;line-height:1.4;color:var(--ink)}
+.dark ul.checks li{color:rgba(245,242,236,.85)}
+ul.checks .mk{flex-shrink:0;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.8rem;margin-top:1px}
+.mk.g{background:var(--green-tint);color:var(--green)}
+.mk.r{background:var(--crimson-tint);color:var(--crimson)}
+
+/* ── Gateway animation ──────────────────────────────────── */
+.gw{display:grid;grid-template-columns:160px 1fr 150px;gap:1.4rem;width:100%;height:52vh;align-items:stretch}
+.gw .col{display:flex;flex-direction:column;justify-content:space-around}
+.node{background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:4px;padding:.6rem .8rem;font-size:.82rem;font-weight:600;color:var(--ink-strong);display:flex;align-items:center;gap:.5rem}
+.node small{display:block;font-family:var(--mono);font-size:.62rem;font-weight:400;color:var(--ink-subtle);letter-spacing:.03em;margin-top:2px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ink);flex-shrink:0}
+.lanes{position:relative;border-left:1px dashed var(--rule-soft);border-right:1px dashed var(--rule-soft);overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0,transparent 30px,var(--rule-subtle) 30px,var(--rule-subtle) 31px)}
+.gate{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--ink);transform:translateX(-50%)}
+.gate-lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);color:#fff;font-family:var(--mono);font-size:.66rem;font-weight:600;letter-spacing:.16em;padding:.4rem .7rem;border-radius:3px;white-space:nowrap;transition:background .2s}
+.gate-lbl.flash{background:var(--crimson);box-shadow:0 0 0 4px rgba(122,30,30,.18)}
+.tok{position:absolute;transform:translateY(-50%);display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .6rem;background:#fff;border:1px solid var(--rule-soft);border-radius:3px;font-family:var(--mono);font-size:.68rem;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tok .r{font-weight:600;color:var(--ink-subtle);text-transform:uppercase;font-size:.58rem;letter-spacing:.08em}
+.tok.clean{border-color:rgba(31,95,31,.4)} .tok.clean .t{color:var(--green)}
+.tok.bad{border-color:rgba(122,30,30,.4)} .tok.bad .t{color:var(--crimson)}
+.tok.blocked{background:var(--crimson);border-color:var(--crimson)} .tok.blocked .t,.tok.blocked .r{color:#fff}
+.col-head{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:.7rem;text-align:center}
+
+/* ── Chat mock (block demo) ─────────────────────────────── */
+.chat{max-width:640px;width:100%;background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:10px;overflow:hidden;box-shadow:0 10px 40px rgba(10,10,10,.08)}
+.chat .bar{background:var(--bg-subtle);padding:.7rem 1rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-subtle);border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:.5rem}
+.chat .body{padding:1.3rem}
+.msg{padding:.8rem 1rem;border-radius:8px;font-size:.92rem;line-height:1.5;margin-bottom:1rem}
+.msg.user{background:var(--bg-subtle);color:var(--ink)}
+.msg .lbl{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:.4rem}
+.secret{background:var(--crimson-tint);color:var(--crimson);padding:0 3px;border-radius:2px;font-family:var(--mono)}
+.block-banner{background:var(--crimson);color:#fff;padding:1rem 1.1rem;border-radius:8px;font-size:.9rem;line-height:1.45;display:flex;gap:.7rem;align-items:flex-start;opacity:0;transform:translateY(8px)}
+.slide.active .block-banner{animation:rise .5s ease .9s both}
+.block-banner .x{font-weight:700;font-size:1.1rem;line-height:1}
+
+/* ── Dashboard mock ─────────────────────────────────────── */
+.dash{display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;width:100%}
+.panel{background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:8px;padding:1.2rem}
+.panel .ph{font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:1rem}
+.bars{display:flex;align-items:flex-end;gap:.7rem;height:150px}
+.bars .b{flex:1;background:linear-gradient(var(--navy),var(--navy-tint));border-radius:3px 3px 0 0;transform-origin:bottom;transform:scaleY(0)}
+.slide.active .bars .b{animation:grow .8s cubic-bezier(.2,.8,.2,1) both}
+.slide.active .bars .b:nth-child(1){animation-delay:.4s} .slide.active .bars .b:nth-child(2){animation-delay:.5s}
+.slide.active .bars .b:nth-child(3){animation-delay:.6s} .slide.active .bars .b:nth-child(4){animation-delay:.7s}
+.slide.active .bars .b:nth-child(5){animation-delay:.8s} .slide.active .bars .b:nth-child(6){animation-delay:.9s}
+.slide.active .bars .b:nth-child(7){animation-delay:1s}
+@keyframes grow{to{transform:scaleY(1)}}
+.rows{display:grid;gap:.7rem}
+.row{display:flex;align-items:center;justify-content:space-between;padding:.55rem .7rem;border-radius:5px;background:var(--bg-subtle);font-size:.82rem}
+.row .who{font-weight:600}
+.donut{width:150px;height:150px;border-radius:50%;margin:0 auto;background:conic-gradient(var(--green) 0 62%,var(--amber) 62% 82%,var(--crimson) 82% 100%);display:flex;align-items:center;justify-content:center;position:relative}
+.donut::after{content:"";position:absolute;width:96px;height:96px;border-radius:50%;background:var(--bg-elev)}
+.donut .c{position:relative;z-index:1;font-family:var(--serif);font-size:1.4rem;color:var(--ink-strong)}
+
+/* ── Siren dot ──────────────────────────────────────────── */
+.siren{position:relative;width:11px;height:11px;display:inline-block}
+.siren b{position:absolute;inset:0;border-radius:50%;animation:flip 1.8s steps(1,end) infinite}
+.siren .blue{background:#1f3a68;box-shadow:0 0 6px 2px rgba(31,58,104,.7)}
+.siren .red{background:#b91c1c;box-shadow:0 0 6px 2px rgba(185,28,28,.8);animation-delay:.9s}
+@keyframes flip{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* ── Nav / chrome ───────────────────────────────────────── */
+.brand{position:fixed;top:2vh;left:8vw;z-index:50;display:flex;align-items:center;gap:.6rem;font-family:var(--serif);font-size:1.05rem;font-weight:500;color:var(--ink-strong)}
+.dark ~ .brand,.brand.on-dark{color:#fff}
+.brand .m{width:26px;height:26px;background:var(--crimson);color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.progress{position:fixed;bottom:0;left:0;height:3px;background:var(--crimson);transition:width .4s ease;z-index:60}
+.counter{position:fixed;bottom:2.4vh;right:8vw;font-family:var(--mono);font-size:.72rem;color:var(--ink-subtle);z-index:50;letter-spacing:.1em}
+.nav-hint{position:fixed;bottom:2.4vh;left:8vw;font-family:var(--mono);font-size:.68rem;color:var(--ink-subtle);z-index:50;letter-spacing:.08em}
+.arrows{position:fixed;bottom:2vh;right:50%;transform:translateX(50%);z-index:50;display:flex;gap:.6rem}
+.arrows button{font-family:var(--mono);font-size:.9rem;width:40px;height:40px;border-radius:50%;border:1px solid var(--rule-soft);background:var(--bg-elev);color:var(--ink);cursor:pointer;transition:all .15s}
+.arrows button:hover{background:var(--ink);color:#fff}
+.foot{margin-top:2.2rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;color:var(--ink-subtle);text-transform:uppercase}
+.dark .foot{color:rgba(245,242,236,.5)}
+.badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.badges span{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:.32rem .7rem;border:1px solid var(--rule-soft);border-radius:3px;color:var(--ink-muted)}
+.dark .badges span{border-color:rgba(245,242,236,.2);color:rgba(245,242,236,.6)}
+@media(max-width:820px){.g3,.g4,.stats{grid-template-columns:1fr 1fr}.gw{grid-template-columns:90px 1fr 90px}.dash{grid-template-columns:1fr}.brand,.nav-hint{left:5vw}.counter{right:5vw}}
+</style>
+</head>
+<body>
+
+<div class="brand"><span class="m">K</span> AiKotwal</div>
+
+<div class="deck" id="deck">
+
+<!-- 1 — INTRO -->
+<section class="slide dark active">
+  <div class="eyebrow reveal"><span class="siren"><b class="blue"></b><b class="red"></b></span> Enterprise AI Security Gateway</div>
+  <h1 class="reveal">The AI Gateway<br>built for <span class="em">Zero Leaks</span>.</h1>
+  <p class="lead reveal" style="margin-top:1.8rem">One integration. Any AI model. Complete data control, policy enforcement, and cost governance — for every employee, every prompt.</p>
+  <div class="badges reveal">
+    <span>EU AI Act</span><span>GDPR</span><span>SOC 2</span><span>ISO 27001</span><span>ISO 42001</span><span>NIST AI RMF</span>
+  </div>
+  <div class="foot reveal">Customer Demo · 2026</div>
+</section>
+
+<!-- 2 — THE SHIFT -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">The reality today</div>
+  <h2 class="reveal">Your people are already<br>using AI. <span class="em">Without you.</span></h2>
+  <p class="lead reveal">Employees paste code, contracts, customer records, and financials into ChatGPT, Claude, and Gemini every day — through personal accounts, browser tabs, and unmanaged tools. You have no visibility, no policy, and no record.</p>
+  <div class="stats reveal" style="margin-top:2.6rem">
+    <div class="stat"><div class="v">1 in 5</div><div class="l">files pasted into AI contain sensitive data</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">audit trail on shadow AI usage</div></div>
+    <div class="stat"><div class="v">∞</div><div class="l">once data leaves, it can't be recalled</div></div>
+    <div class="stat"><div class="v">€35M</div><div class="l">max EU AI Act penalty exposure</div></div>
+  </div>
+</section>
+
+<!-- 3 — PROBLEM STATEMENT -->
+<section class="slide">
+  <div class="eyebrow reveal">The problem</div>
+  <h2 class="reveal">Six gaps every enterprise has right now.</h2>
+  <div class="grid g3 reveal">
+    <div class="card bad"><div class="k"><span class="pill crimson">Leak</span></div><h3>Sensitive data leaks to AI models</h3><p>Credentials, PII, source code, and financials flow straight to third-party models — irreversibly.</p></div>
+    <div class="card bad"><div class="k"><span class="pill crimson">Control</span></div><h3>No enterprise controls</h3><p>No way to say which teams use which models for what. Every employee is an open door.</p></div>
+    <div class="card bad"><div class="k"><span class="pill crimson">Policy</span></div><h3>No governance policy</h3><p>No enforced rules, no versioning, no evidence for auditors or regulators.</p></div>
+    <div class="card bad"><div class="k"><span class="pill amber">Licenses</span></div><h3>Fragmented model licenses</h3><p>Separate contracts for OpenAI, Anthropic, Google — duplicated spend, no leverage.</p></div>
+    <div class="card bad"><div class="k"><span class="pill amber">Waste</span></div><h3>Token waste, no cost control</h3><p>Bloated prompts and redundant context burn budget with zero visibility per team or user.</p></div>
+    <div class="card bad"><div class="k"><span class="pill amber">Adoption</span></div><h3>No effective, safe way to use AI</h3><p>Employees want to use AI well; without guardrails, IT can only say "no."</p></div>
+  </div>
+</section>
+
+<!-- 4 — COST OF INACTION -->
+<section class="slide dark">
+  <div class="eyebrow reveal">What it costs you</div>
+  <h2 class="reveal">"No" is not a strategy.<br>Neither is <span class="em">"hope."</span></h2>
+  <div class="grid g2 reveal" style="margin-top:1rem">
+    <div class="card"><h3>Block AI entirely</h3><p>Employees route around IT with personal accounts. You lose the productivity <em>and</em> the visibility. Shadow AI grows in the dark.</p></div>
+    <div class="card"><h3>Allow AI freely</h3><p>Every prompt is an uncontrolled, unaudited data-exfiltration path. One paste becomes a breach, a fine, or a headline.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:2rem">There is a third option: <strong style="color:#fff">govern it.</strong></p>
+</section>
+
+<!-- 5 — SOLUTION INTRO -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">The solution</div>
+  <h2 class="reveal">One gateway between your people<br>and <span class="underline">every AI model</span>.</h2>
+  <p class="lead reveal">Kotwal sits in the middle. Nothing sensitive leaves without passing policy. Every interaction is inspected, logged, and controlled — while your people keep working exactly as they do today.</p>
+  <div class="badges reveal" style="margin-top:1.8rem">
+    <span>Inspect</span><span>Redact</span><span>Enforce</span><span>Route</span><span>Audit</span><span>Optimize</span>
+  </div>
+</section>
+
+<!-- 6 — LIVE GATEWAY ANIMATION -->
+<section class="slide">
+  <div class="eyebrow reveal">How it works · live</div>
+  <h2 class="reveal" style="margin-bottom:1.2rem">Every prompt inspected at the gate.</h2>
+  <div class="gw reveal">
+    <div class="col">
+      <div class="col-head">Employees</div>
+      <div class="node"><span class="dot"></span>Legal<small>Contracts</small></div>
+      <div class="node"><span class="dot"></span>Sales<small>Enterprise</small></div>
+      <div class="node"><span class="dot"></span>Eng<small>Platform</small></div>
+      <div class="node"><span class="dot"></span>HR<small>People Ops</small></div>
+    </div>
+    <div class="lanes" id="lanes">
+      <div class="gate"></div>
+      <div class="gate-lbl" id="gateLbl">KOTWAL</div>
+    </div>
+    <div class="col">
+      <div class="col-head">AI Models</div>
+      <div class="node"><span class="dot"></span>OpenAI</div>
+      <div class="node"><span class="dot"></span>Anthropic</div>
+      <div class="node"><span class="dot"></span>Google</div>
+      <div class="node"><span class="dot"></span>…any</div>
+    </div>
+  </div>
+  <p class="foot reveal">Clean prompts pass in green · sensitive prompts stopped in crimson at the gate</p>
+</section>
+
+<!-- 7 — BLOCK DEMO (chat) -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">Data leak prevention</div>
+  <h2 class="reveal">A real key never reaches the model.</h2>
+  <div class="reveal" style="display:flex;justify-content:center">
+    <div class="chat">
+      <div class="bar"><span class="siren"><b class="blue"></b><b class="red"></b></span> Kotwal · Chat</div>
+      <div class="body">
+        <div class="msg user"><div class="lbl">Engineer</div>Checkout is failing in prod — can you check if this key is malformed? <span class="secret">STRIPE_SECRET_KEY=sk_live_51MqR8kJx2vHwPqZ…</span></div>
+        <div class="block-banner"><span class="x">✕</span><div><strong>Blocked — credential detected.</strong><br>A live Stripe secret key was found and stopped before reaching any AI model. Logged to the audit trail; security team notified.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 — REDACT DEMO -->
+<section class="slide">
+  <div class="eyebrow reveal">Smart redaction</div>
+  <h2 class="reveal">The AI still helps —<br>but never sees <span class="em">who</span>.</h2>
+  <div class="grid g2 reveal" style="margin-top:.6rem">
+    <div class="card bad">
+      <div class="k"><span class="pill crimson">What the user typed</span></div>
+      <p style="font-family:var(--mono);font-size:.82rem;line-height:1.6">Write a follow-up to <span class="secret">Jennifer Martinez</span> at <span class="secret">jennifer.martinez@northwind-capital.com</span> about the Q1 renewal.</p>
+    </div>
+    <div class="card good">
+      <div class="k"><span class="pill green">What the model receives</span></div>
+      <p style="font-family:var(--mono);font-size:.82rem;line-height:1.6">Write a follow-up to <span style="background:var(--green-tint);color:var(--green);padding:0 3px">&lt;PERSON_NAME&gt;</span> at <span style="background:var(--green-tint);color:var(--green);padding:0 3px">&lt;EMAIL&gt;</span> about the Q1 renewal.</p>
+    </div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.6rem">Identity is tokenized on the way out and restored in the reply your rep sees. The model does its job; the data stays inside your boundary.</p>
+</section>
+
+<!-- 9 — ADMIN DASHBOARD -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">Complete admin control</div>
+  <h2 class="reveal">Everything, in one dashboard.</h2>
+  <div class="dash reveal">
+    <div class="panel">
+      <div class="ph">AI usage by department · this month</div>
+      <div class="bars">
+        <div class="b" style="height:55%"></div><div class="b" style="height:80%"></div>
+        <div class="b" style="height:40%"></div><div class="b" style="height:95%"></div>
+        <div class="b" style="height:62%"></div><div class="b" style="height:48%"></div>
+        <div class="b" style="height:72%"></div>
+      </div>
+      <div class="rows" style="margin-top:1.2rem">
+        <div class="row"><span class="who">Blocked prompts</span><span class="pill crimson">128 this week</span></div>
+        <div class="row"><span class="who">Redacted prompts</span><span class="pill amber">342 this week</span></div>
+        <div class="row"><span class="who">Clean prompts</span><span class="pill green">18,905 this week</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph">Enforcement outcomes</div>
+      <div class="donut"><span class="c">98.2%</span></div>
+      <p style="text-align:center;font-size:.82rem;color:var(--ink-muted);margin-top:1rem">clean · <span style="color:var(--amber)">redacted</span> · <span style="color:var(--crimson)">blocked</span></p>
+      <div class="rows" style="margin-top:1rem">
+        <div class="row"><span class="who">Policy version</span><span class="mono">v2 · GDPR</span></div>
+        <div class="row"><span class="who">Avg latency</span><span class="mono">&lt;50ms</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 — CAPABILITIES -->
+<section class="slide">
+  <div class="eyebrow reveal">Everything included</div>
+  <h2 class="reveal">Controlled, safe, and ready to scale.</h2>
+  <div class="grid g2 reveal">
+    <ul class="checks">
+      <li><span class="mk g">✓</span> Data-leak prevention on every prompt (credentials, PII, financials, IP)</li>
+      <li><span class="mk g">✓</span> Multi-model gateway — one integration for OpenAI, Anthropic, Google & more</li>
+      <li><span class="mk g">✓</span> Policy enforcement per team, role, and data category</li>
+      <li><span class="mk g">✓</span> Full audit log of every interaction — evidence-ready</li>
+    </ul>
+    <ul class="checks">
+      <li><span class="mk g">✓</span> Usage analytics & cost control across every provider</li>
+      <li><span class="mk g">✓</span> Input-token optimization — 20–40% cost reduction</li>
+      <li><span class="mk g">✓</span> Custom agents grounded on your own knowledge base</li>
+      <li><span class="mk g">✓</span> Role-based access, project workspaces, VS Code plugin</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 11 — COST GOVERNANCE -->
+<section class="slide dark">
+  <div class="eyebrow reveal">Cost governance</div>
+  <h2 class="reveal">Consolidate licenses.<br>Cut the <span class="em">token waste</span>.</h2>
+  <div class="grid g3 reveal" style="margin-top:1rem">
+    <div class="card"><div class="k"><span class="pill navy">Consolidate</span></div><h3>One contract, all models</h3><p>Replace scattered per-provider licenses with a single governed gateway and real negotiating leverage.</p></div>
+    <div class="card"><div class="k"><span class="pill green">Optimize</span></div><h3>20–40% fewer tokens</h3><p>Automatic prompt compression and context trimming cut redundant tokens with no quality loss.</p></div>
+    <div class="card"><div class="k"><span class="pill amber">Budget</span></div><h3>Per-team budgets</h3><p>Prepaid pools, hard/soft caps, and low-balance alerts — spend visibility down to the user.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:2rem">Governance that <strong style="color:#fff">pays for itself</strong>.</p>
+</section>
+
+<!-- 12 — DEPLOYMENT / TRUST -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">Your data, your infrastructure</div>
+  <h2 class="reveal">Run it wherever your data must live.</h2>
+  <div class="grid g4 reveal">
+    <div class="card"><div class="k">SaaS</div><h3>Our cloud</h3><p>Zero ops. Encrypted at rest with your key.</p></div>
+    <div class="card"><div class="k">VPC</div><h3>Self-hosted</h3><p>Your VPC, your DB, your keys. We never see the data.</p></div>
+    <div class="card"><div class="k">Managed</div><h3>Private cloud</h3><p>Your infra, we operate it via secure access.</p></div>
+    <div class="card"><div class="k">Air-gap</div><h3>On-prem</h3><p>Fully isolated for the highest-classification environments.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.8rem">Same product, everywhere. In the self-hosted model there is nothing to trust — the data never leaves your walls.</p>
+</section>
+
+<!-- 13 — COMPLIANCE -->
+<section class="slide">
+  <div class="eyebrow reveal">Compliance built in</div>
+  <h2 class="reveal">Evidence-ready for every framework.</h2>
+  <div class="stats reveal">
+    <div class="stat"><div class="v">100%</div><div class="l">prompt coverage — no blind spots</div></div>
+    <div class="stat"><div class="v">&lt;50ms</div><div class="l">enforcement overhead</div></div>
+    <div class="stat"><div class="v">6</div><div class="l">frameworks mapped</div></div>
+    <div class="stat"><div class="v">AES-256</div><div class="l">GCM encryption at rest</div></div>
+  </div>
+  <div class="badges reveal" style="margin-top:2.4rem">
+    <span>EU AI Act</span><span>GDPR</span><span>HIPAA</span><span>PCI-DSS</span><span>SOC 2</span><span>ISO 27001</span><span>ISO 42001</span><span>NIST AI RMF</span><span>DPDP (India)</span>
+  </div>
+</section>
+
+<!-- 14 — CTA -->
+<section class="slide dark">
+  <div class="eyebrow reveal"><span class="siren"><b class="blue"></b><b class="red"></b></span> Get started</div>
+  <h1 class="reveal">See Kotwal stop a<br>real leak — <span class="em">live</span>.</h1>
+  <p class="lead reveal" style="margin-top:1.6rem">A 30-minute walkthrough on your own AI risk scenarios. See the gateway, policy enforcement, and the dashboard in action.</p>
+  <div class="badges reveal" style="margin-top:2rem"><span>No commitment</span><span>30 minutes</span><span>Your data scenarios</span></div>
+  <div class="foot reveal" style="margin-top:2.4rem">aikotwal.com · Enterprise AI Security Gateway</div>
+</section>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="nav-hint">← → or Space to navigate</div>
+<div class="counter" id="counter">01 / 14</div>
+<div class="arrows"><button id="prev" aria-label="Previous">‹</button><button id="next" aria-label="Next">›</button></div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  const brand=document.querySelector('.brand');
+  let i=0;
+  const total=slides.length;
+  const counter=document.getElementById('counter');
+  const progress=document.getElementById('progress');
+  function pad(n){return String(n).padStart(2,'0')}
+  function show(n){
+    i=Math.max(0,Math.min(total-1,n));
+    slides.forEach((s,idx)=>s.classList.toggle('active',idx===i));
+    counter.textContent=pad(i+1)+' / '+pad(total);
+    progress.style.width=((i+1)/total*100)+'%';
+    // brand colour flips on dark slides
+    brand.style.color=slides[i].classList.contains('dark')?'#fff':'';
+  }
+  function next(){show(i+1)} function prev(){show(i-1)}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(total-1)}
+  });
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  // click right/left third of screen to navigate
+  document.addEventListener('click',e=>{
+    if(e.target.closest('button')||e.target.closest('a'))return;
+    if(e.clientX>window.innerWidth*0.6)next();
+    else if(e.clientX<window.innerWidth*0.4)prev();
+  });
+  show(0);
+
+  // ── Gateway token animation (slide 6) ──────────────────
+  const lanes=document.getElementById('lanes');
+  const gateLbl=document.getElementById('gateLbl');
+  const stream=[
+    {lane:0,role:'Legal',t:'Summarise clause 4.3',bad:false},
+    {lane:1,role:'Sales',t:'API_KEY=sk-live-8xKj',bad:true},
+    {lane:2,role:'Eng',t:'Refactor auth module',bad:false},
+    {lane:3,role:'HR',t:'SSN 498-52-7013',bad:true},
+    {lane:0,role:'Legal',t:'Draft NDA v3',bad:false},
+    {lane:1,role:'Sales',t:'card 4539 1488 0343',bad:true},
+    {lane:2,role:'Eng',t:'Explain this bug',bad:false},
+    {lane:3,role:'HR',t:'Bonus band confidential',bad:true},
+  ];
+  const toks=stream.map((s,idx)=>{
+    const el=document.createElement('div');
+    el.className='tok '+(s.bad?'bad':'clean');
+    el.innerHTML='<span class="r">'+s.role+'</span><span class="t">'+s.t+'</span>';
+    el.style.top=(12.5+s.lane*25)+'%';
+    lanes.appendChild(el);
+    return {el,...s,pos:-15-idx*24,state:'move',wait:0,speed:0.16+(idx%3)*0.03};
+  });
+  let last=null, gy=50;
+  function tick(ts){
+    if(!last)last=ts; const dt=Math.min(50,ts-last); last=ts;
+    let flash=false, target=50, closest=null;
+    toks.forEach(tk=>{
+      if(tk.state==='gone'){ if(tk.wait>0){tk.wait-=dt;} else {tk.pos=-15;tk.state='move';} }
+      else if(tk.state==='blocked'){ if(tk.wait>0){tk.wait-=dt; flash=true; target=12.5+tk.lane*25;} else {tk.state='gone';tk.wait=800+Math.random()*500;tk.el.style.opacity='0';tk.el.className='tok '+(tk.bad?'bad':'clean');} }
+      else {
+        const adv=tk.pos+tk.speed*(dt/16);
+        if(tk.bad&&adv>=48){tk.pos=48;tk.state='blocked';tk.wait=700;tk.el.className='tok blocked';tk.el.querySelector('.t').textContent='BLOCKED';}
+        else if(adv>=112){tk.pos=-15-Math.random()*25;}
+        else {tk.pos=adv; if(tk.bad&&tk.pos<48){const d=48-tk.pos; if(!closest||d<closest)closest=d, target=12.5+tk.lane*25;}}
+        tk.el.style.opacity='1';
+      }
+      tk.el.style.left=tk.pos+'%';
+    });
+    gy+=(target-gy)*0.08; gateLbl.style.top=gy+'%';
+    gateLbl.classList.toggle('flash',flash);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
