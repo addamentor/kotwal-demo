@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kotwal — Investor Deck</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%237a1e1e'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f5f2ec; --bg-elev:#ffffff; --bg-subtle:#eee8de; --bg-inverse:#0a0a0a;
+  --ink:#0a0a0a; --ink-strong:#000; --ink-muted:#525252; --ink-subtle:#8a8478; --ink-inverse:#f5f2ec;
+  --rule-soft:#d9d3c5; --rule-subtle:#e5e0d3;
+  --crimson:#7a1e1e; --crimson-tint:#f5e6e6;
+  --green:#1f5f1f; --green-tint:#e6efe0;
+  --navy:#1f3a68; --navy-tint:#e1e6ee;
+  --amber:#8b6914; --amber-tint:#f2e9d1;
+  --serif:'Fraunces','Georgia',serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+.deck{position:fixed;inset:0}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:6vh 8vw;opacity:0;visibility:hidden;transform:translateY(24px) scale(.99);transition:opacity .5s ease,transform .5s ease,visibility .5s;overflow:hidden}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.dark{background:radial-gradient(120% 120% at 78% 30%, #17181c 0%, #0a0a0a 62%);color:var(--ink-inverse)}
+.slide.subtle{background:var(--bg-subtle)}
+.slide.active .reveal{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.slide.active .reveal:nth-child(1){animation-delay:.05s}
+.slide.active .reveal:nth-child(2){animation-delay:.15s}
+.slide.active .reveal:nth-child(3){animation-delay:.25s}
+.slide.active .reveal:nth-child(4){animation-delay:.35s}
+.slide.active .reveal:nth-child(5){animation-delay:.45s}
+.slide.active .reveal:nth-child(6){animation-delay:.55s}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+.eyebrow{font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem}
+.dark .eyebrow{color:rgba(245,242,236,.7)}
+h1{font-family:var(--serif);font-weight:400;line-height:1.02;letter-spacing:-.03em;color:var(--ink-strong);font-size:clamp(2.6rem,6.4vw,6rem)}
+.dark h1{color:#fff}
+h2{font-family:var(--serif);font-weight:400;line-height:1.08;letter-spacing:-.02em;color:var(--ink-strong);font-size:clamp(2rem,4.4vw,3.6rem);margin-bottom:1.6rem}
+.dark h2{color:#fff}
+.em{font-style:italic;color:var(--crimson)}
+.dark .em{color:#e88}
+.lead{font-size:clamp(1.05rem,1.6vw,1.4rem);line-height:1.55;color:var(--ink-muted);max-width:62ch}
+.dark .lead{color:rgba(245,242,236,.82)}
+.underline{position:relative;display:inline-block;white-space:nowrap}
+.underline::after{content:"";position:absolute;left:0;right:0;bottom:.08em;height:.22em;background:rgba(31,95,31,.28);z-index:-1}
+.big{font-family:var(--serif);font-weight:500;font-size:clamp(3rem,9vw,7rem);line-height:1;color:var(--crimson)}
+.dark .big{color:#e88}
+
+.grid{display:grid;gap:1.1rem;width:100%}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:6px;padding:1.5rem 1.4rem}
+.dark .card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
+.card .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-subtle);margin-bottom:.6rem}
+.card h3{font-family:var(--sans);font-weight:600;font-size:1.08rem;color:var(--ink-strong);margin-bottom:.5rem;line-height:1.25}
+.dark .card h3{color:#fff}
+.card p{font-size:.92rem;line-height:1.55;color:var(--ink-muted)}
+.dark .card p{color:rgba(245,242,236,.72)}
+.dark .stat .l{color:rgba(245,242,236,.7)}
+.dark .card .k{color:rgba(245,242,236,.6)}
+
+/* split layout — headline/copy left, visual right (fills the empty right side) */
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:3.2rem;align-items:center;width:100%}
+.split .rightcol{display:flex;flex-direction:column;gap:1rem}
+@media(max-width:820px){.split{grid-template-columns:1fr;gap:1.6rem}}
+.card.accent{border-left:3px solid var(--crimson)}
+
+.pill{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:100px}
+.pill.crimson{background:var(--crimson-tint);color:var(--crimson)}
+.pill.green{background:var(--green-tint);color:var(--green)}
+.pill.navy{background:var(--navy-tint);color:var(--navy)}
+.pill.amber{background:var(--amber-tint);color:var(--amber)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;width:100%}
+.stat .v{font-family:var(--serif);font-size:clamp(2.4rem,4.4vw,3.8rem);font-weight:500;line-height:1;color:var(--crimson)}
+.dark .stat .v{color:#e88}
+.stat .l{font-size:.9rem;color:var(--ink-muted);margin-top:.6rem;line-height:1.4}
+.dark .stat .l{color:rgba(245,242,236,.6)}
+
+ul.checks{list-style:none;display:grid;gap:1rem;margin-top:.4rem}
+ul.checks li{display:flex;gap:.8rem;align-items:flex-start;font-size:1.05rem;line-height:1.4}
+ul.checks .mk{flex-shrink:0;width:22px;height:22px;border-radius:5px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.8rem;margin-top:1px}
+
+/* market rings */
+.tam{display:flex;flex-direction:column;gap:.8rem;width:100%;max-width:560px}
+.tam .bar{display:flex;align-items:center;gap:1rem}
+.tam .track{flex:1;height:44px;background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:6px;overflow:hidden;position:relative}
+.tam .fill{height:100%;border-radius:5px 0 0 5px;display:flex;align-items:center;padding-left:1rem;font-family:var(--mono);font-size:.8rem;color:#fff;transform-origin:left;transform:scaleX(0)}
+.slide.active .tam .fill{animation:stretch .9s cubic-bezier(.2,.8,.2,1) both}
+.slide.active .tam .bar:nth-child(1) .fill{animation-delay:.3s}
+.slide.active .tam .bar:nth-child(2) .fill{animation-delay:.5s}
+.slide.active .tam .bar:nth-child(3) .fill{animation-delay:.7s}
+@keyframes stretch{to{transform:scaleX(1)}}
+.tam .tag{width:70px;font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.1em;color:var(--ink-subtle)}
+
+/* traction line */
+.line{display:flex;align-items:flex-end;gap:1.4rem;height:180px;width:100%;max-width:640px}
+.line .b{flex:1;background:linear-gradient(var(--green),var(--green-tint));border-radius:4px 4px 0 0;transform-origin:bottom;transform:scaleY(0);position:relative}
+.slide.active .line .b{animation:grow .8s cubic-bezier(.2,.8,.2,1) both}
+.slide.active .line .b:nth-child(1){animation-delay:.35s}.slide.active .line .b:nth-child(2){animation-delay:.5s}
+.slide.active .line .b:nth-child(3){animation-delay:.65s}.slide.active .line .b:nth-child(4){animation-delay:.8s}
+.slide.active .line .b:nth-child(5){animation-delay:.95s}
+@keyframes grow{to{transform:scaleY(1)}}
+.line .b span{position:absolute;top:-1.4rem;left:0;right:0;text-align:center;font-family:var(--mono);font-size:.68rem;color:var(--ink-muted)}
+
+/* founders */
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;width:100%}
+.founder{background:var(--bg-elev);border:1px solid var(--rule-soft);border-radius:8px;padding:1.6rem;display:flex;flex-direction:column}
+.founder .photo{width:100%;height:130px;border-radius:8px;background:var(--bg-subtle);border:1px dashed var(--rule-soft);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;color:var(--ink-subtle);font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;text-align:center;line-height:1.5}
+.founder .name{font-family:var(--serif);font-size:1.3rem;font-weight:500;color:var(--ink-strong);line-height:1.1}
+.founder .role{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crimson);margin:.4rem 0 .8rem}
+.founder .bio{font-size:.88rem;line-height:1.65;color:var(--ink-muted);min-height:9.5em}
+
+.badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.badges span{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:.32rem .7rem;border:1px solid var(--rule-soft);border-radius:3px;color:var(--ink-muted)}
+.dark .badges span{border-color:rgba(245,242,236,.2);color:rgba(245,242,236,.6)}
+.foot{margin-top:2.2rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;color:var(--ink-subtle);text-transform:uppercase}
+.dark .foot{color:rgba(245,242,236,.5)}
+.siren{position:relative;width:11px;height:11px;display:inline-block}
+.siren b{position:absolute;inset:0;border-radius:50%;animation:flip 1.8s steps(1,end) infinite}
+.siren .blue{background:#1f3a68;box-shadow:0 0 6px 2px rgba(31,58,104,.7)}
+.siren .red{background:#b91c1c;box-shadow:0 0 6px 2px rgba(185,28,28,.8);animation-delay:.9s}
+@keyframes flip{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+.brand{position:fixed;top:2vh;left:8vw;z-index:50;display:flex;align-items:center;gap:.6rem;font-family:var(--serif);font-size:1.05rem;font-weight:500;color:var(--ink-strong)}
+.brand .m{width:26px;height:26px;background:var(--crimson);color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.progress{position:fixed;bottom:0;left:0;height:3px;background:var(--crimson);transition:width .4s ease;z-index:60}
+.counter{position:fixed;bottom:2.4vh;right:8vw;font-family:var(--mono);font-size:.72rem;color:var(--ink-subtle);z-index:50;letter-spacing:.1em}
+.nav-hint{position:fixed;bottom:2.4vh;left:8vw;font-family:var(--mono);font-size:.68rem;color:var(--ink-subtle);z-index:50;letter-spacing:.08em}
+.arrows{position:fixed;bottom:2vh;right:50%;transform:translateX(50%);z-index:50;display:flex;gap:.6rem}
+.arrows button{font-family:var(--mono);font-size:.9rem;width:40px;height:40px;border-radius:50%;border:1px solid var(--rule-soft);background:var(--bg-elev);color:var(--ink);cursor:pointer;transition:all .15s}
+.arrows button:hover{background:var(--ink);color:#fff}
+@media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}.team,.stats{grid-template-columns:1fr}.brand,.nav-hint{left:5vw}.counter{right:5vw}}
+</style>
+</head>
+<body>
+
+<div class="brand"><span class="m">K</span> AiKotwal</div>
+
+<div class="deck" id="deck">
+
+<!-- 1 — TITLE -->
+<section class="slide dark active">
+  <div class="split">
+    <div>
+      <div class="eyebrow reveal"><span class="siren"><b class="blue"></b><b class="red"></b></span> Seed Round · 2026</div>
+      <h1 class="reveal">The control layer<br>for <span class="em">enterprise AI</span>.</h1>
+      <p class="lead reveal" style="margin-top:1.8rem">Kotwal is the gateway every company will need between its employees and AI — stopping data leaks, enforcing policy, and controlling cost across every model, from one place.</p>
+      <div class="foot reveal">Investor Overview · Confidential</div>
+    </div>
+    <div class="rightcol reveal">
+      <div class="card"><div class="k">The one line</div><h3>Employees → Kotwal → any AI model</h3><p>Every prompt inspected, redacted, and governed in under 50ms — invisibly. Safety that adoption doesn't fight.</p></div>
+      <div class="grid g2" style="gap:.9rem">
+        <div class="card"><div class="k">Protect</div><h3>Zero leaks</h3></div>
+        <div class="card"><div class="k">Control</div><h3>One dashboard</h3></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 — THE ONE-LINER / WHY NOW -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">Why now</div>
+  <h2 class="reveal">AI adoption outran<br>AI <span class="underline">control</span>.</h2>
+  <p class="lead reveal">Every enterprise now has thousands of employees using AI daily — and almost none has a way to govern it. The tools arrived overnight; the guardrails didn't. Regulation (EU AI Act) is landing at the same moment. This gap is being created faster than anyone can close it.</p>
+  <div class="stats reveal" style="margin-top:2.6rem;grid-template-columns:repeat(3,1fr)">
+    <div class="stat"><div class="v">2026</div><div class="l">EU AI Act enforcement begins — fines to €35M</div></div>
+    <div class="stat"><div class="v">78%</div><div class="l">of employees use AI tools their employer can't see</div></div>
+    <div class="stat"><div class="v">Now</div><div class="l">the window to become the default control layer</div></div>
+  </div>
+</section>
+
+<!-- 3 — PROBLEM -->
+<section class="slide">
+  <div class="eyebrow reveal">The problem</div>
+  <h2 class="reveal">Enterprises are flying blind<br>on their biggest new risk.</h2>
+  <div class="grid g3 reveal">
+    <div class="card accent"><h3>Data walks out the door</h3><p>Employees paste secrets, customer data, and IP into AI tools. Once it's sent, it's gone — no recall, no record.</p></div>
+    <div class="card accent"><h3>No policy, no control</h3><p>No enforced rules on who uses which model for what. IT's only lever today is a blanket "no" — which nobody obeys.</p></div>
+    <div class="card accent"><h3>Cost sprawl</h3><p>Separate licenses per provider, runaway token spend, zero visibility. AI budgets balloon with no accountability.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.8rem">The choice today is <strong>block AI and lose the productivity</strong>, or <strong>allow it and lose the data</strong>. Both are wrong.</p>
+</section>
+
+<!-- 4 — SOLUTION -->
+<section class="slide dark">
+  <div class="eyebrow reveal">The solution</div>
+  <h2 class="reveal">One gateway. Every model.<br><span class="em">Total control.</span></h2>
+  <p class="lead reveal">Kotwal sits between employees and every AI provider. It inspects each prompt, blocks or redacts sensitive data in real time, enforces policy per team, routes across models, and gives finance one dashboard for cost — without changing how anyone works.</p>
+  <div class="grid g4 reveal" style="margin-top:2rem">
+    <div class="card"><div class="k">Protect</div><h3>Stop leaks</h3><p>Real-time detection + redaction.</p></div>
+    <div class="card"><div class="k">Govern</div><h3>Enforce policy</h3><p>Per team, role, and model.</p></div>
+    <div class="card"><div class="k">Route</div><h3>Any model</h3><p>One integration, all providers.</p></div>
+    <div class="card"><div class="k">Control</div><h3>Cut cost</h3><p>Budgets + token optimization.</p></div>
+  </div>
+</section>
+
+<!-- 5 — INNOVATION / WHY US -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">The innovation</div>
+  <h2 class="reveal">Governance that adds<br><span class="underline">zero friction</span>.</h2>
+  <p class="lead reveal">Others force a trade-off: security <em>or</em> usability. Kotwal's engine inspects and redacts in under 50ms, invisibly — the employee gets their answer, the sensitive data never leaves. That's the unlock: safety people don't fight, so adoption actually happens.</p>
+  <div class="grid g3 reveal" style="margin-top:1.6rem">
+    <div class="card"><div class="k"><span class="pill green">Speed</span></div><h3>&lt;50ms inline</h3><p>Detection and redaction fast enough to sit on every prompt, invisibly.</p></div>
+    <div class="card"><div class="k"><span class="pill navy">Breadth</span></div><h3>One layer, everything</h3><p>DLP, policy, multi-model routing, cost, agents, audit — unified, not bolted together.</p></div>
+    <div class="card"><div class="k"><span class="pill amber">Trust</span></div><h3>Runs in your VPC</h3><p>Self-hostable — the data never leaves the customer's walls. Removes the buyer's #1 objection.</p></div>
+  </div>
+</section>
+
+<!-- 6 — HOW IT WORKS (simple) -->
+<section class="slide">
+  <div class="eyebrow reveal">In one picture</div>
+  <h2 class="reveal">Every prompt passes the gate.</h2>
+  <div class="reveal" style="display:flex;align-items:center;justify-content:center;gap:2vw;flex-wrap:wrap;margin-top:1rem">
+    <div class="card" style="text-align:center;min-width:150px"><div class="k">Employees</div><h3>Any team</h3><p>Any AI tool they already use.</p></div>
+    <div style="font-family:var(--serif);font-size:2rem;color:var(--ink-subtle)">→</div>
+    <div class="card" style="text-align:center;min-width:170px;border:2px solid var(--crimson)"><div class="k"><span class="pill crimson">Kotwal</span></div><h3>Inspect · Redact · Enforce · Audit</h3><p>&lt;50ms, on every prompt.</p></div>
+    <div style="font-family:var(--serif);font-size:2rem;color:var(--ink-subtle)">→</div>
+    <div class="card" style="text-align:center;min-width:150px"><div class="k">AI Models</div><h3>Any provider</h3><p>Only safe, policy-clean data arrives.</p></div>
+  </div>
+  <p class="foot reveal">Sensitive data stopped or masked before it ever reaches a model.</p>
+</section>
+
+<!-- 7 — MARKET -->
+<section class="slide dark">
+  <div class="split">
+    <div>
+      <div class="eyebrow reveal">The market</div>
+      <h2 class="reveal">A category forming<br>at <span class="em">regulatory speed</span>.</h2>
+      <div class="tam reveal" style="margin-top:.5rem;max-width:none">
+        <div class="bar"><span class="tag">TAM</span><div class="track"><div class="fill" style="width:100%;background:var(--crimson)">$60B+ · AI security &amp; governance by 2030</div></div></div>
+        <div class="bar"><span class="tag">SAM</span><div class="track"><div class="fill" style="width:60%;background:var(--navy)">$18B · regulated &amp; data-sensitive enterprises</div></div></div>
+        <div class="bar"><span class="tag">SOM</span><div class="track"><div class="fill" style="width:30%;background:var(--green)">$1.5B · beachhead: finance, legal, health</div></div></div>
+      </div>
+      <p class="lead reveal" style="margin-top:1.6rem;font-size:1.05rem">Every enterprise adopting AI needs this layer. Regulation turns it from optional to mandatory.</p>
+    </div>
+    <div class="rightcol reveal">
+      <div class="card"><div class="k">Market driver</div><h3>Enterprise AI spend</h3><p style="font-size:1.6rem;font-family:var(--serif);color:#fff;margin:.3rem 0">$300B+ by 2030</p><p>Governance is the tax on all of it — and nobody owns that layer yet.</p></div>
+      <div class="card"><div class="k">Growth</div><h3>Category CAGR</h3><p style="font-size:1.6rem;font-family:var(--serif);color:#fff;margin:.3rem 0">~35% / yr</p><p>Fastest-growing slice of enterprise security spend.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7b — MARKET METRICS -->
+<section class="slide">
+  <div class="eyebrow reveal">Why the timing is exact</div>
+  <h2 class="reveal">The numbers behind the urgency.</h2>
+  <div class="stats reveal" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat"><div class="v">$300B+</div><div class="l">projected enterprise AI spend by 2030 — every dollar needs a control layer</div></div>
+    <div class="stat"><div class="v">~35%</div><div class="l">annual growth in AI security &amp; governance — outpacing all other security categories</div></div>
+    <div class="stat"><div class="v">€35M</div><div class="l">max EU AI Act penalty — governance becomes a board-mandated purchase in 2026</div></div>
+  </div>
+  <div class="stats reveal" style="grid-template-columns:repeat(3,1fr);margin-top:2.4rem">
+    <div class="stat"><div class="v">78%</div><div class="l">of employees already use AI tools their employer cannot see or control</div></div>
+    <div class="stat"><div class="v">1 in 5</div><div class="l">AI prompts in the enterprise contain sensitive or regulated data</div></div>
+    <div class="stat"><div class="v">20–40%</div><div class="l">token cost reduction Kotwal delivers — the product pays for itself</div></div>
+  </div>
+</section>
+
+<!-- 8 — BUSINESS MODEL -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">Business model</div>
+  <h2 class="reveal">Recurring, expanding,<br>and sticky.</h2>
+  <div class="grid g3 reveal">
+    <div class="card"><div class="k"><span class="pill navy">Per seat</span></div><h3>Subscription</h3><p>Priced per active user, per month. Grows automatically as the customer rolls AI out wider.</p></div>
+    <div class="card"><div class="k"><span class="pill green">Usage</span></div><h3>Model spend</h3><p>Gateway sits on all AI traffic — a natural, expanding usage layer on top of seats.</p></div>
+    <div class="card"><div class="k"><span class="pill amber">Sticky</span></div><h3>Control plane</h3><p>Once every prompt, policy, and audit trail runs through Kotwal, switching cost is enormous.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.8rem">Land with security, expand with cost savings and adoption — the product pays for itself via token optimization alone.</p>
+</section>
+
+<!-- 9 — MOAT / TRACTION -->
+<section class="slide">
+  <div class="eyebrow reveal">Why we win</div>
+  <h2 class="reveal">The default control layer<br>compounds.</h2>
+  <div class="grid g2 reveal" style="align-items:center">
+    <ul class="checks">
+      <li><span class="mk">✓</span> <strong>Data moat:</strong> every enterprise's policies, audit trail, and detection tuning live in Kotwal.</li>
+      <li><span class="mk">✓</span> <strong>Integration moat:</strong> the gateway becomes plumbing across every AI tool and workflow.</li>
+      <li><span class="mk">✓</span> <strong>Timing moat:</strong> becoming the standard before the category consolidates.</li>
+      <li><span class="mk">✓</span> <strong>Trust moat:</strong> self-hosted deployment wins the most security-conscious buyers first.</li>
+    </ul>
+    <div>
+      <div class="line">
+        <div class="b" style="height:22%"><span>Q1</span></div>
+        <div class="b" style="height:40%"><span>Q2</span></div>
+        <div class="b" style="height:58%"><span>Q3</span></div>
+        <div class="b" style="height:80%"><span>Q4</span></div>
+        <div class="b" style="height:100%"><span>Now</span></div>
+      </div>
+      <p class="foot" style="text-align:center">Illustrative growth — pipeline &amp; deployments</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10 — TEAM (placeholders) -->
+<section class="slide subtle">
+  <div class="eyebrow reveal">The team</div>
+  <h2 class="reveal">Built by people who've<br>lived this problem.</h2>
+  <div class="team reveal">
+    <div class="founder">
+      <div class="photo">Photo — add later<br>(landscape or square)</div>
+      <div class="name">Founder Name</div>
+      <div class="role">Co-Founder &amp; CEO</div>
+      <p class="bio">[ Add 4–6 lines: background and prior companies, domain expertise in security / enterprise software, a notable achievement or exit, and the specific reason this founder is uniquely positioned to build Kotwal. There is room here for a full short bio — write it as you'd say it to an investor, without crowding the card. ]</p>
+    </div>
+    <div class="founder">
+      <div class="photo">Photo — add later<br>(landscape or square)</div>
+      <div class="name">Founder Name</div>
+      <div class="role">Co-Founder &amp; CTO</div>
+      <p class="bio">[ Add 4–6 lines: engineering background, deep systems / security / ML experience, notable prior work or scale shipped, and the technical edge behind Kotwal's sub-50ms detection and multi-model gateway. Enough space for a substantive bio that establishes real technical credibility. ]</p>
+    </div>
+    <div class="founder">
+      <div class="photo">Photo — add later<br>(landscape or square)</div>
+      <div class="name">Founder Name</div>
+      <div class="role">Co-Founder &amp; C__</div>
+      <p class="bio">[ Add 4–6 lines: go-to-market / product / operations background, enterprise relationships and prior revenue built, and the role this founder plays in landing regulated-industry customers. Room for a full bio covering track record and network. ]</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 — THE ASK -->
+<section class="slide dark">
+  <div class="eyebrow reveal"><span class="siren"><b class="blue"></b><b class="red"></b></span> The ask</div>
+  <h1 class="reveal">Raising to own<br>the <span class="em">control layer</span>.</h1>
+  <p class="lead reveal" style="margin-top:1.6rem">We're raising to accelerate go-to-market, deepen the detection engine, and land the enterprises defining this category — before anyone else does.</p>
+  <div class="grid g3 reveal" style="margin-top:2rem">
+    <div class="card"><div class="k"><span class="pill navy">Product</span></div><h3>Engine &amp; scale</h3><p>Deepen context-aware detection and enterprise deployment.</p></div>
+    <div class="card"><div class="k"><span class="pill green">GTM</span></div><h3>Land &amp; expand</h3><p>Sales into regulated, data-sensitive enterprises.</p></div>
+    <div class="card"><div class="k"><span class="pill amber">Team</span></div><h3>Key hires</h3><p>Security, ML, and enterprise sales talent.</p></div>
+  </div>
+  <div class="foot reveal" style="margin-top:2.2rem">aikotwal.com · [ contact@aikotwal.com ]</div>
+</section>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="nav-hint">← → or Space to navigate</div>
+<div class="counter" id="counter">01 / 12</div>
+<div class="arrows"><button id="prev" aria-label="Previous">‹</button><button id="next" aria-label="Next">›</button></div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  const brand=document.querySelector('.brand');
+  let i=0; const total=slides.length;
+  const counter=document.getElementById('counter'), progress=document.getElementById('progress');
+  const pad=n=>String(n).padStart(2,'0');
+  function show(n){
+    i=Math.max(0,Math.min(total-1,n));
+    slides.forEach((s,idx)=>s.classList.toggle('active',idx===i));
+    counter.textContent=pad(i+1)+' / '+pad(total);
+    progress.style.width=((i+1)/total*100)+'%';
+    brand.style.color=slides[i].classList.contains('dark')?'#fff':'';
+  }
+  const next=()=>show(i+1), prev=()=>show(i-1);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home')show(0); else if(e.key==='End')show(total-1);
+  });
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  document.addEventListener('click',e=>{
+    if(e.target.closest('button')||e.target.closest('a'))return;
+    if(e.clientX>window.innerWidth*0.6)next(); else if(e.clientX<window.innerWidth*0.4)prev();
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
