@@ -318,6 +318,34 @@ ul.checks .mk{flex-shrink:0;width:22px;height:22px;border-radius:5px;display:fle
   <p class="lead reveal" style="margin-top:1.6rem">Identity is tokenized on the way out and restored in the reply your rep sees. The model does its job; the data stays inside your boundary.</p>
 </section>
 
+<!-- 8b — WHAT WE DETECT -->
+<section class="slide">
+  <div class="eyebrow reveal">What the gateway inspects</div>
+  <h2 class="reveal">Nine data classes.<br>One decision, <span class="em">every prompt</span>.</h2>
+  <div class="grid g3 reveal" style="margin-top:.4rem">
+    <div class="card bad"><div class="k"><span class="pill crimson">Block</span></div><h3>Credentials</h3><p>API keys, tokens, private keys, DB connection strings.</p></div>
+    <div class="card bad"><div class="k"><span class="pill crimson">Block</span></div><h3>Prompt injection</h3><p>Jailbreaks, system-override &amp; indirect injection attempts.</p></div>
+    <div class="card bad"><div class="k"><span class="pill crimson">Block</span></div><h3>Dangerous output &amp; IP</h3><p>Destructive SQL/shell, malicious code, proprietary identifiers.</p></div>
+    <div class="card good"><div class="k"><span class="pill amber">Redact</span></div><h3>Financial</h3><p>Cards (Luhn), IBAN, sort codes, account numbers.</p></div>
+    <div class="card good"><div class="k"><span class="pill amber">Redact</span></div><h3>Government IDs</h3><p>SSN, Aadhaar, PAN, CPF, DNI — checksum-validated.</p></div>
+    <div class="card good"><div class="k"><span class="pill amber">Redact</span></div><h3>Personal data</h3><p>Names, emails, phone numbers, physical addresses.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.4rem">Plus network/infra references and configurable topic restrictions — <strong>logged, warned, or blocked</strong> to your policy.</p>
+</section>
+
+<!-- 8c — POLICIES -->
+<section class="slide dark">
+  <div class="eyebrow reveal">Policy, not guesswork</div>
+  <h2 class="reveal">One engine. <span class="em">Your rules.</span></h2>
+  <div class="grid g4 reveal" style="margin-top:.6rem">
+    <div class="card"><div class="k"><span class="pill navy">EU</span></div><h3>GDPR</h3><p>Tighter thresholds for personal data across the EU.</p></div>
+    <div class="card"><div class="k"><span class="pill navy">Health</span></div><h3>HIPAA</h3><p>PHI &amp; personal identifiers escalated to hard block.</p></div>
+    <div class="card"><div class="k"><span class="pill navy">Payments</span></div><h3>PCI-DSS</h3><p>Financial data blocked outright, not just redacted.</p></div>
+    <div class="card"><div class="k"><span class="pill navy">India</span></div><h3>DPDP</h3><p>India Digital Personal Data Protection preset.</p></div>
+  </div>
+  <p class="lead reveal" style="margin-top:1.6rem">Pick a jurisdiction preset or tune per team and role — every decision is versioned and audit-logged.</p>
+</section>
+
 <!-- 9 — ADMIN DASHBOARD -->
 <section class="slide subtle">
   <div class="eyebrow reveal">Complete admin control</div>
@@ -422,7 +450,7 @@ ul.checks .mk{flex-shrink:0;width:22px;height:22px;border-radius:5px;display:fle
 
 <div class="progress" id="progress"></div>
 <div class="nav-hint">← → or Space to navigate</div>
-<div class="counter" id="counter">01 / 14</div>
+<div class="counter" id="counter">01 / 16</div>
 <div class="arrows"><button id="prev" aria-label="Previous">‹</button><button id="next" aria-label="Next">›</button></div>
 
 <script>
